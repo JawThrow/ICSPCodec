@@ -2238,8 +2238,8 @@ void CmotionCompensation(FrameData& cntFrm, FrameData& prevFrm, int type)
 	unsigned char** predblck = (unsigned char**)malloc(sizeof(unsigned char*)*blocksize);
 	for(int i=0; i<blocksize; i++) predblck[i] = (unsigned char *)malloc(sizeof(unsigned char)*blocksize);
 
-	CBlockData *cbd;
-	if(type == CB)
+	CBlockData *cbd = NULL;
+ 	if(type == CB)
 		cbd = cntFrm.Cbblocks;
 	else if(type == CR)
 		cbd = cntFrm.Crblocks;
@@ -2398,8 +2398,8 @@ void interCbCr(FrameData& cntFrm, FrameData& prevFrm, int QstepDC, int QstepAC)
 /* common function */
 void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 {
-	Block8d *DCTblck;
-	Block8i *Errblck;
+	Block8d *DCTblck = NULL;
+	Block8i *Errblck = NULL;
 	Block8d temp;
 	if(type==INTRA)
 	{
@@ -2489,7 +2489,7 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 			dct2blck.block[i][j] *= (1./4.);
 		}
 	}*/
-	///////////////////////////////////////////////
+	///////////////////////////////////////////
 
 
 	/*cout << "dct2" << endl;
@@ -2521,9 +2521,9 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 }
 void Quantization_block(BlockData &bd, int numOfblck8, int blocksize, int QstepDC, int QstepAC, int type)
 {
-	Block8d *DCTblck;  
-	Block8i *Quanblck; 
-	int *ACflag;
+	Block8d *DCTblck = NULL;  
+	Block8i *Quanblck = NULL; 
+	int *ACflag = NULL;
 
 	if(type==INTRA)
 	{
@@ -2570,8 +2570,8 @@ void Quantization_block(BlockData &bd, int numOfblck8, int blocksize, int QstepD
 }
 void IQuantization_block(BlockData &bd, int numOfblck8, int blocksize, int QstepDC, int QstepAC, int type)
 {
-	Block8i *Quanblck;
-	Block8i *IQuanblck;
+	Block8i *Quanblck = NULL;
+	Block8i *IQuanblck = NULL;
 	if(type==INTRA)
 	{
 		Quanblck  = (bd.intraQuanblck[numOfblck8]);
@@ -2625,8 +2625,8 @@ void IQuantization_block(BlockData &bd, int numOfblck8, int blocksize, int Qstep
 }
 void IDCT_block(BlockData &bd, int numOfblck8, int blocksize, int type)
 {
-	Block8d *IDCTblck;
-	Block8i *IQuanblck;
+	Block8d *IDCTblck = NULL;
+	Block8i *IQuanblck = NULL;
 	Block8d temp;
 	if(type==INTRA)
 	{
@@ -2764,7 +2764,7 @@ void reordering(BlockData &bd, int numOfblck8, int predmode)
 	int blocksize = bd.blocksize2;
 	int *reorderedblck = (int*) calloc(blocksize*blocksize, sizeof(int));	// 해놓고 나중에 free; 나중에 모두 entropy 변환하고 free시키면 됨
 
-	Block8i *Quanblck;
+	Block8i *Quanblck = NULL;
 	if(predmode==INTRA)		 
 	{
 		Quanblck = (bd.intraQuanblck[numOfblck8]);
@@ -2783,7 +2783,7 @@ void Creordering(CBlockData &cbd,  int predmode)
 	int blocksize = cbd.blocksize;
 	int *reorderedblck = (int*) calloc(blocksize*blocksize, sizeof(int));	// 해놓고 나중에 free; 나중에 모두 entropy 변환하고 free시키면 됨
 
-	Block8i *Quanblck;
+	Block8i *Quanblck = NULL;
 	if(predmode==INTRA)		 
 	{
 		Quanblck = (cbd.intraQuanblck);
@@ -4206,7 +4206,7 @@ void IDPCM_DC_block(FrameData &frm, int numOfblck16, int numOfblck8, int blocksi
 }
 void CDCT_block(CBlockData &bd, int blocksize, int predmode)
 {
-	Block8d *DCTblck;
+	Block8d *DCTblck = NULL;
 	Block8i temp;
 	Block8i *Errblck = &temp;
 	Block8d dcttemp;
@@ -4292,15 +4292,15 @@ void CDPCM_DC_block(FrameData& frm, CBlockData& bd, int numOfblck8, int CbCrtype
 	int numOfCurrentBlck =0;
 	int a=0, b=0, c=0, median=0;
 
-	CBlockData* cbd;
+	CBlockData* cbd = NULL;
 	if(CbCrtype==CB) cbd = frm.Cbblocks;
 	else if(CbCrtype==CR) cbd = frm.Crblocks;
 
-	Block8d *DCTblck;
-	Block8i *IQuanblckLeft;
-	Block8i *IQuanblckUpper;
-	Block8i *IQuanblckUpperLeft;
-	Block8i *IQuanblckUpperRight;
+	Block8d *DCTblck = NULL;
+	Block8i *IQuanblckLeft = NULL;
+	Block8i *IQuanblckUpper = NULL;
+	Block8i *IQuanblckUpperLeft = NULL;
+	Block8i *IQuanblckUpperRight = NULL;
 	if(predmode==INTRA)
 	{
 		if(numOfblck8==0)
@@ -4387,15 +4387,15 @@ void CIDPCM_DC_block(FrameData& frm, CBlockData& bd, int numOfblck8, int CbCrtyp
 	int numOfCurrentBlck =0;
 	int a=0, b=0, c=0, median=0;
 
-	CBlockData* cbd;
+	CBlockData* cbd = NULL;
 	if(CbCrtype==CB) cbd = frm.Cbblocks;
 	else if(CbCrtype==CR) cbd = frm.Crblocks;
 
-	Block8i *IQuanblck;
-	Block8i *IQuanblckLeft;
-	Block8i *IQuanblckUpper;
-	Block8i *IQuanblckUpperLeft;
-	Block8i *IQuanblckUpperRight;
+	Block8i *IQuanblck = NULL;
+	Block8i *IQuanblckLeft = NULL;
+	Block8i *IQuanblckUpper = NULL;
+	Block8i *IQuanblckUpperLeft = NULL;
+	Block8i *IQuanblckUpperRight = NULL;
 	if(predmode==INTRA)
 	{
 		if(numOfblck8==0)
@@ -4478,9 +4478,9 @@ void CIDPCM_DC_block(FrameData& frm, CBlockData& bd, int numOfblck8, int CbCrtyp
 }
 void CQuantization_block(CBlockData &bd, int blocksize, int QstepDC, int QstepAC, int predmode)
 {
-	Block8d *DCTblck;
-	Block8i *Quanblck;
-	int *ACflag;
+	Block8d *DCTblck = NULL;
+	Block8i *Quanblck = NULL;
+	int *ACflag = NULL;
 	if(predmode==INTRA)
 	{
 		DCTblck  = (bd.intraDCTblck);
@@ -4525,8 +4525,8 @@ void CQuantization_block(CBlockData &bd, int blocksize, int QstepDC, int QstepAC
 }
 void CIQuantization_block(CBlockData &bd, int blocksize, int QstepDC, int QstepAC, int predmode)
 {
-	Block8i *IQuanblck;
-	Block8i *Quanblck;
+	Block8i *IQuanblck = NULL;
+	Block8i *Quanblck = NULL;
 	if(predmode==INTRA)
 	{
 		IQuanblck = (bd.intraInverseQuanblck);
@@ -4555,8 +4555,8 @@ void CIQuantization_block(CBlockData &bd, int blocksize, int QstepDC, int QstepA
 }
 void CIDCT_block(CBlockData &bd, int blocksize, int predmode)
 {
-	Block8d *IDCTblck;
-	Block8i *IQuanblck;
+	Block8d *IDCTblck = NULL;
+	Block8i *IQuanblck = NULL;
 	Block8d temp;
 	if(predmode==INTRA)
 	{
