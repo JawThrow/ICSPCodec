@@ -5,6 +5,7 @@ using namespace std;
 
 #define INTRA 0
 #define INTER 1
+#define ALL_INTRA 2
 #define CB 3
 #define CR 4
 #define SAVE_Y 5
@@ -297,7 +298,7 @@ inline void IcspCodec::encoding(int intraPeriod)
 {
 	clock_t t = clock();
 
-	if( intraPeriod==1 )
+	if( intraPeriod==ALL_INTRA )
 	{
 		// all intra predtion
 		allintraPrediction(frames, YCbCr.nframe, QstepDC, QstepAC);
