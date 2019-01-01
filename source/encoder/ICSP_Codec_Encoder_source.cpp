@@ -13,7 +13,10 @@ int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe,  const int width, c
 	icC.YCbCr.width  = width;
 	icC.YCbCr.height = height;
 
-	char CIF_path[256] = "..\\CIF(352x288)";	
+	/*char CIF_path[256] = "..\\CIF(352x288)";	
+	char CIF_fname[256];*/
+	
+	char CIF_path[256] = "data";
 	char CIF_fname[256];
 
 	sprintf(CIF_fname, "%s\\%s", CIF_path, fname);
@@ -593,9 +596,15 @@ void DPCM_pix_block(FrameData &frm, int numOfblck16, int numOfblck8, int blocksi
 	int **temp0;
 	int **temp1;
 	int **temp2;
-	temp0 = (int**)malloc(sizeof(int)*blocksize);
-	temp1 = (int**)malloc(sizeof(int)*blocksize);
-	temp2 = (int**)malloc(sizeof(int)*blocksize);
+	temp0 = (int**)malloc(sizeof(int*)*blocksize);
+	temp1 = (int**)malloc(sizeof(int*)*blocksize);
+	temp2 = (int**)malloc(sizeof(int*)*blocksize);
+
+	if (temp0 == NULL || temp1 == NULL || temp2 == NULL)
+	{
+		printf("Memory allocation error!\n");		
+	}
+
 	for(int i=0; i<blocksize; i++)
 	{
 		temp0[i] = (int*)calloc(blocksize, sizeof(int));
