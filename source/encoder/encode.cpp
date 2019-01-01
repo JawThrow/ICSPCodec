@@ -5,12 +5,18 @@ extern char filename[256];
 
 int main(int argc, char *argv[])
 {
-	int nframes = atoi(argv[1]);
-	char *imgfname = argv[2];
-	int QPDC = atoi(argv[3]);
-	int QPAC = atoi(argv[4]);
-	int intraPeriod = atoi(argv[5]);
 
+	//int nframes = atoi(argv[1]);
+	//char *imgfname = argv[2];
+	//int QPDC = atoi(argv[3]);
+	//int QPAC = atoi(argv[4]);
+	//int intraPeriod = atoi(argv[5]);
+
+	int nframes = 300;
+	char *imgfname = "akiyo_cif(352X288)_300f.yuv";
+	int QPDC = 16;
+	int QPAC = 16;
+	int intraPeriod = INTER;
 	_splitpath(imgfname, NULL, NULL, filename, NULL);
 	
 	IcspCodec icspCodec;

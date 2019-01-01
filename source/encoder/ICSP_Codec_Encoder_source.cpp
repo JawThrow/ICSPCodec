@@ -13,7 +13,10 @@ int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe,  const int width, c
 	icC.YCbCr.width  = width;
 	icC.YCbCr.height = height;
 
-	char CIF_path[256] = "..\\CIF(352x288)";	
+	/*char CIF_path[256] = "..\\CIF(352x288)";	
+	char CIF_fname[256];*/
+	
+	char CIF_path[256] = "data";
 	char CIF_fname[256];
 
 	sprintf(CIF_fname, "%s\\%s", CIF_path, fname);
@@ -313,7 +316,7 @@ void intraPrediction(FrameData& frm, int QstepDC, int QstepAC)
 	int splitWidth = frm.splitWidth;
 	int splitHeight = frm.splitHeight;
 	
-
+	clock_t start = clock();
 	for(int numOfblck16=0; numOfblck16<totalblck; numOfblck16++)
 	{
 		BlockData& bd = frm.blocks[numOfblck16];
@@ -350,7 +353,7 @@ void intraPrediction(FrameData& frm, int QstepDC, int QstepAC)
 		cbbd.intraInverseDCTblck = (Block8d*)malloc(sizeof(Block8d));
 		crbd.intraInverseDCTblck = (Block8d*)malloc(sizeof(Block8d));
 		/* 할당 구간 끝 */
-
+		
 		for(int numOfblck8=0; numOfblck8<nblck8; numOfblck8++)
 		{
 			DPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
@@ -365,6 +368,7 @@ void intraPrediction(FrameData& frm, int QstepDC, int QstepAC)
 			IDCT_block(bd, numOfblck8, blocksize2, INTRA);
 			IDPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
 		}		
+		
 		intraCbCr(frm, cbbd, crbd, blocksize2, numOfblck16, QstepDC, QstepAC); // numOfblck16 means numOfblck8 in CbCr Processing
 		mergeBlock(bd, blocksize2, INTRA);		
 
@@ -375,7 +379,9 @@ void intraPrediction(FrameData& frm, int QstepDC, int QstepAC)
 		free(bd.intraQuanblck);
 		free(bd.intraInverseDCTblck);
 		free(bd.originalblck16);
+
 	}
+	printf("%.5f\n", (float)(clock() - start) / CLOCKS_PER_SEC);
 	intraImgReconstruct(frm);
 
 	for(int numOfblck16=0; numOfblck16<totalblck; numOfblck16++)
@@ -593,9 +599,15 @@ void DPCM_pix_block(FrameData &frm, int numOfblck16, int numOfblck8, int blocksi
 	int **temp0;
 	int **temp1;
 	int **temp2;
-	temp0 = (int**)malloc(sizeof(int)*blocksize);
-	temp1 = (int**)malloc(sizeof(int)*blocksize);
-	temp2 = (int**)malloc(sizeof(int)*blocksize);
+	temp0 = (int**)malloc(sizeof(int*)*blocksize);
+	temp1 = (int**)malloc(sizeof(int*)*blocksize);
+	temp2 = (int**)malloc(sizeof(int*)*blocksize);
+
+	if (temp0 == NULL || temp1 == NULL || temp2 == NULL)
+	{
+		printf("Memory allocation error!\n");		
+	}
+
 	for(int i=0; i<blocksize; i++)
 	{
 		temp0[i] = (int*)calloc(blocksize, sizeof(int));
@@ -1224,7 +1236,7 @@ void DPCM_pix_block(FrameData &frm, int numOfblck16, int numOfblck8, int blocksi
 	free(temp0);
 	free(temp1);
 	free(temp2);
-
+	
 	// restructedblck8 is needed to free here
 	free(bd.originalblck8[numOfCurrentBlck]);
 }
@@ -2412,13 +2424,11 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 		Errblck = (bd.interErrblck8[numOfblck8]);
 	}
 
-	
-
 	for(int x=0; x<blocksize; x++)
 		for(int y=0; y<blocksize; y++)
 			DCTblck->block[y][x] = temp.block[y][x] = 0;
+			
 
-	
 	for(int v=0; v<blocksize; v++)
 	{
 		for(int u=0; u<blocksize; u++)
@@ -2430,28 +2440,72 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 		}
 	}
 
-	for(int u=0; u<blocksize; u++)
+	for (int u = 0; u<blocksize; u++)
 	{
-		for(int v=0; v<blocksize; v++)
+		for (int v = 0; v<blocksize; v++)
 		{
-			for(int y=0; y<blocksize; y++)
+			for (int y = 0; y<blocksize; y++)
 			{
 				DCTblck->block[v][u] += temp.block[y][u] * costable[v][y];
 			}
 		}
 	}
 
-	for(int i=0; i<blocksize; i++)
+
+	// simd avx2 version dct(float)
+	/*float *ErrRowf = (float*)malloc(sizeof(float)*blocksize);
+	float  SIMDResf= 0;
+	__m256 ErrRow;
+	__m256 CosRow;
+	__m256 ResRow;
+	Block8d SIMDResBlck;
+	Block8d SIMDTempBlck;
+	
+	for (int v = 0; v < blocksize; v++)
+	{
+		for (int i = 0; i < blocksize; i++)
+			ErrRowf[i] = Errblck->block[v][i];
+		ErrRow = _mm256_load_ps(ErrRowf);
+		for (int u = 0; u < blocksize; u++)
+		{
+			CosRow = _mm256_load_ps(costable[u]);
+			ResRow = _mm256_mul_ps(ErrRow, CosRow);
+			for (int i = 0; i < blocksize; i++)
+				SIMDResf += ResRow.m256_f32[i];
+			SIMDTempBlck.block[v][u] = SIMDResf;
+			SIMDResf = 0.f;
+		}
+	}
+
+	for(int u = 0; u < blocksize; u++)
+	{
+		for (int i = 0; i < blocksize; i++)
+			ErrRowf[i] = SIMDTempBlck.block[i][u];
+		ErrRow = _mm256_load_ps(ErrRowf);
+		for (int v = 0; v < blocksize; v++)
+		{
+			CosRow = _mm256_load_ps(costable[v]);
+			ResRow = _mm256_mul_ps(ErrRow, CosRow);
+			for (int i = 0; i < blocksize; i++)
+				SIMDResf += ResRow.m256_f32[i];
+			DCTblck->block[v][u] = SIMDResf;
+			SIMDResf = 0.f;
+		}
+	}
+	free(ErrRowf);*/
+	// simd avx2 version dct
+
+	for (int i = 0; i<blocksize; i++)
 	{
 		DCTblck->block[0][i] *= irt2;
 		DCTblck->block[i][0] *= irt2;
 	}
 
-	for(int i=0; i<blocksize; i++)
+	for (int i = 0; i<blocksize; i++)
 	{
-		for(int j=0; j<blocksize; j++)
+		for (int j = 0; j<blocksize; j++)
 		{
-			DCTblck->block[i][j] *= (1./4.);
+			DCTblck->block[i][j] *= (1. / 4.);
 		}
 	}
 
@@ -2518,6 +2572,7 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 	// 나중에 intra, inter err, dct 다 free해줘야되
 	// dct는 Quantize함수에서 참조하므로 그안에서 해제해야지 멍청아
 	free(Errblck);
+	
 }
 void Quantization_block(BlockData &bd, int numOfblck8, int blocksize, int QstepDC, int QstepAC, int type)
 {
@@ -4721,7 +4776,7 @@ void makebitstream(FrameData* frames, int nframes, int height, int width, int Qs
 	header hd;
 	headerinit(hd, height, width, QstepDC, QstepAC, intraPeriod);
 	char compCIFfname[256];
-	sprintf(compCIFfname, "..\\CIF(352x288)\\%s_compCIF_%d_%d_%d.bin", filename, QstepDC, QstepAC, intraPeriod);
+	sprintf(compCIFfname, "output\\%s_compCIF_%d_%d_%d.bin", filename, QstepDC, QstepAC, intraPeriod);
 	#pragma pack(push, 1)
 	FILE* fp = fopen(compCIFfname, "wb");
 	if(fp==NULL)
@@ -6248,7 +6303,7 @@ void checkResultYUV(unsigned char *Y, unsigned char *Cb, unsigned char *Cr, int 
 void checkResultFrames(FrameData* frm, int width, int height, int nframe, int predtype, int chtype)
 {
 	FILE* output_fp;
-	char CIF_path[256] = "..\\CIF(352x288)";
+	char CIF_path[256] = "data";
 
 	char output_pred_name[256]; 
 	if(predtype == INTRA)
