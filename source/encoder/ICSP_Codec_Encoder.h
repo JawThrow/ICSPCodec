@@ -13,16 +13,18 @@ using namespace std;
 
 
 
-struct Block8d{ double block[8][8]; };
-struct Block8i{ int block[8][8]; };
-struct Block8u{	unsigned char block[8][8];};
-struct Block8s{ signed char block[8][8]; };
+struct Block8d { double block[8][8]; };
+struct Block8i { int block[8][8]; };
+struct Block8u {	unsigned char block[8][8];};
+struct Block8s { signed char block[8][8]; };
+struct Block8f { float block[8][8]; };
 
-struct Block16d{ double block[16][16]; };
-struct Block16i{ int block[16][16]; };
-struct Block16u{ unsigned char block[16][16]; };
-struct Block16s{ signed char block[16][16]; };
-struct MotionVector{ int x,y;};
+struct Block16d { double block[16][16]; };
+struct Block16i { int block[16][16]; };
+struct Block16u { unsigned char block[16][16]; };
+struct Block16s { signed char block[16][16]; };
+struct Block16f { float block[16][16]; };
+struct MotionVector { int x,y;};
 
 typedef struct __YCBCR
 {
