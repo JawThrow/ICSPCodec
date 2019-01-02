@@ -2458,7 +2458,6 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 	__m256 ErrRow;
 	__m256 CosRow;
 	__m256 ResRow;
-	Block8d SIMDResBlck;
 	Block8d SIMDTempBlck;
 	
 	for (int v = 0; v < blocksize; v++)
@@ -2493,7 +2492,53 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 		}
 	}
 	free(ErrRowf);*/
-	// simd avx2 version dct
+	// simd avx2 version dct(float)
+
+
+	/*Block8f Errblckf;
+	Block8f Errblckft;
+	float  SIMDResf = 0;
+	__m256 ErrRow;
+	__m256 CosRow;
+	__m256 ResRow;
+	Block8d SIMDTempBlck;
+
+	for (int y = 0; y < blocksize; y++)
+		for (int x = 0; x < blocksize; x++)
+			Errblckf.block[y][x] = Errblck->block[y][x];
+	
+	for (int v = 0; v < blocksize; v++)
+	{
+		ErrRow = _mm256_load_ps(Errblckf.block[v]);
+		for (int u = 0; u < blocksize; u++)
+		{
+			CosRow = _mm256_load_ps(costable[u]);
+			ResRow = _mm256_mul_ps(ErrRow, CosRow);
+			for (int i = 0; i < blocksize; i++)
+				SIMDResf += ResRow.m256_f32[i];
+			SIMDTempBlck.block[v][u] = SIMDResf;
+			SIMDResf = 0.f;
+		}
+	}
+
+	for (int y = 0; y < blocksize; y++)
+		for (int x = 0; x < blocksize; x++)
+			Errblckft.block[y][x] = SIMDTempBlck.block[x][y];
+
+	for(int u = 0; u < blocksize; u++)
+	{
+		ErrRow = _mm256_load_ps(Errblckft.block[u]);
+		for (int v = 0; v < blocksize; v++)
+		{
+			CosRow = _mm256_load_ps(costable[v]);
+			ResRow = _mm256_mul_ps(ErrRow, CosRow);
+			for (int i = 0; i < blocksize; i++)
+				SIMDResf += ResRow.m256_f32[i];
+			DCTblck->block[v][u] = SIMDResf;
+			SIMDResf = 0.f;
+		}
+	}*/
+
 
 	for (int i = 0; i<blocksize; i++)
 	{
