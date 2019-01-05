@@ -4,6 +4,9 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
+
+#define SIMD true
+
 char filename[256];
 
 /* initiation function*/
@@ -398,7 +401,8 @@ void intraPrediction(FrameData& frm, int QstepDC, int QstepAC)
 int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // horizontal; 일단 첫번째 두번째 파라매터의 길이를 8로 static하게 고정
 {
 	int SAE=0;
-
+#ifdef SIMD
+	
 	if(upper==NULL)
 	{
 		for(int y=0; y<blocksize; y++)
@@ -421,6 +425,30 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 			}
 		}
 	}
+#else
+	if(upper==NULL)
+	{
+		for(int y=0; y<blocksize; y++)
+		{
+			for(int x=0; x<blocksize; x++)
+			{
+				err_temp[y][x] = (int)current[y][x] - 128;
+				SAE += abs(err_temp[y][x]);
+			}
+		}
+	}
+	else
+	{
+		for(int y=0; y<blocksize; y++)
+		{
+			for(int x=0; x<blocksize; x++)
+			{
+				err_temp[y][x] = (int)(current[y][x] - upper[blocksize-1][x]);
+				SAE += abs(err_temp[y][x]);
+			}
+		}
+	}
+#endif
 	return SAE;
 }
 int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // vertical; 일단 첫번째 두번째 파라매터의 길이를 8로 static하게 고정
@@ -2428,74 +2456,8 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 		for(int y=0; y<blocksize; y++)
 			DCTblck->block[y][x] = temp.block[y][x] = 0;
 			
-
-	for(int v=0; v<blocksize; v++)
-	{
-		for(int u=0; u<blocksize; u++)
-		{
-			for(int x=0; x<blocksize; x++)
-			{
-				temp.block[v][u] += (double)Errblck->block[v][x] * costable[u][x];
-			}
-		}
-	}
-
-	for (int u = 0; u<blocksize; u++)
-	{
-		for (int v = 0; v<blocksize; v++)
-		{
-			for (int y = 0; y<blocksize; y++)
-			{
-				DCTblck->block[v][u] += temp.block[y][u] * costable[v][y];
-			}
-		}
-	}
-
-
-	// simd avx2 version dct(float)
-	/*float *ErrRowf = (float*)malloc(sizeof(float)*blocksize);
-	float  SIMDResf= 0;
-	__m256 ErrRow;
-	__m256 CosRow;
-	__m256 ResRow;
-	Block8d SIMDTempBlck;
-	
-	for (int v = 0; v < blocksize; v++)
-	{
-		for (int i = 0; i < blocksize; i++)
-			ErrRowf[i] = Errblck->block[v][i];
-		ErrRow = _mm256_load_ps(ErrRowf);
-		for (int u = 0; u < blocksize; u++)
-		{
-			CosRow = _mm256_load_ps(costable[u]);
-			ResRow = _mm256_mul_ps(ErrRow, CosRow);
-			for (int i = 0; i < blocksize; i++)
-				SIMDResf += ResRow.m256_f32[i];
-			SIMDTempBlck.block[v][u] = SIMDResf;
-			SIMDResf = 0.f;
-		}
-	}
-
-	for(int u = 0; u < blocksize; u++)
-	{
-		for (int i = 0; i < blocksize; i++)
-			ErrRowf[i] = SIMDTempBlck.block[i][u];
-		ErrRow = _mm256_load_ps(ErrRowf);
-		for (int v = 0; v < blocksize; v++)
-		{
-			CosRow = _mm256_load_ps(costable[v]);
-			ResRow = _mm256_mul_ps(ErrRow, CosRow);
-			for (int i = 0; i < blocksize; i++)
-				SIMDResf += ResRow.m256_f32[i];
-			DCTblck->block[v][u] = SIMDResf;
-			SIMDResf = 0.f;
-		}
-	}
-	free(ErrRowf);*/
-	// simd avx2 version dct(float)
-
-
-	/*Block8f Errblckf;
+#ifdef SIMD
+	Block8f Errblckf;
 	Block8f Errblckft;
 	float  SIMDResf = 0;
 	__m256 ErrRow;
@@ -2537,8 +2499,30 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 			DCTblck->block[v][u] = SIMDResf;
 			SIMDResf = 0.f;
 		}
-	}*/
+	}
+#else
+	for(int v=0; v<blocksize; v++)
+	{
+		for(int u=0; u<blocksize; u++)
+		{
+			for(int x=0; x<blocksize; x++)
+			{
+				temp.block[v][u] += (double)Errblck->block[v][x] * costable[u][x];
+			}
+		}
+	}
 
+	for (int u = 0; u<blocksize; u++)
+	{
+		for (int v = 0; v<blocksize; v++)
+		{
+			for (int y = 0; y<blocksize; y++)
+			{
+				DCTblck->block[v][u] += temp.block[y][u] * costable[v][y];
+			}
+		}
+	}
+#endif
 
 	for (int i = 0; i<blocksize; i++)
 	{
@@ -2554,68 +2538,7 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 		}
 	}
 
-	///////////////////////////////////////////
-	/*
-	Block8d dct2blck;
-	for(int x=0; x<blocksize; x++)
-		for(int y=0; y<blocksize; y++)
-			dct2blck.block[y][x] = 0;
 
-	
-	for(int v=0; v<blocksize; v++)
-	{
-		for(int u=0; u<blocksize; u++)
-		{
-			for(int x=0; x<blocksize; x++)
-			{
-				for(int y=0; y<blocksize; y++)
-				{
-					dct2blck.block[v][u] += (double)Errblck->block[y][x] * cos(((2*x+1)*u*pi)/16.) * cos(((2*y+1)*v*pi)/16.);
-				}
-			}
-		}
-	}
-	for(int i=0; i<blocksize; i++)
-	{
-		dct2blck.block[0][i] *= irt2;
-		dct2blck.block[i][0] *= irt2;
-	}
-
-	for(int i=0; i<blocksize; i++)
-	{
-		for(int j=0; j<blocksize; j++)
-		{
-			dct2blck.block[i][j] *= (1./4.);
-		}
-	}*/
-	///////////////////////////////////////////
-
-
-	/*cout << "dct2" << endl;
-	cout.precision(2);
-	for(int y=0; y<blocksize; y++)
-	{
-		for(int x=0; x<blocksize; x++)
-		{
-			printf("%3.2lf ", dct2blck.block[y][x]);
-		}
-		cout << endl;
-	}
-	cout << endl << endl;
-
-	cout << "dct1" << endl;
-	for(int y=0; y<blocksize; y++)		
-	{
-		for(int x=0; x<blocksize; x++)
-		{
-			printf("%3.2lf ", DCTblck->block[y][x]);
-		}
-		cout << endl;
-	}
-	cout << endl << endl;
-	system("pause");*/
-	// 나중에 intra, inter err, dct 다 free해줘야되
-	// dct는 Quantize함수에서 참조하므로 그안에서 해제해야지 멍청아
 	free(Errblck);
 	
 }
