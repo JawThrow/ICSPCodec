@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	icspCodec.init(nframes, imgfname, 352, 288, QPDC, QPAC);
 	icspCodec.encoding(intraPeriod);
 	
-	return 0; 
+	return 0;
 }
 //akiyo_cif(352X288)_300f.yuv
 //foreman_cif(352X288)_300f.yuv
