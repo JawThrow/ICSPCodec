@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 	char *imgfname = "akiyo_cif(352X288)_300f.yuv";
 	int QPDC = 16;
 	int QPAC = 16;
-	int intraPeriod = INTER;
+	int intraPeriod = ALL_INTRA;
 	_splitpath(imgfname, NULL, NULL, filename, NULL);
 	
 	IcspCodec icspCodec;
