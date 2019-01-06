@@ -406,18 +406,24 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	__m256i predictionRow;
 	__m256i errorRow;
 	__m256i tempRow = _mm256_setzero_si256();;
+	int prediction[8] = { 0, };
+	int *crnt[8] = { 0, };
 	if(upper==NULL)
 	{
 		predictionRow = _mm256_set1_epi32(128);				
 	}
-	else
+	else	
 	{
-		predictionRow = _mm256_load_si256((__m256i*)upper[blocksize - 1]); // error! upper type is unsigned char.
+		/*for (int i = 0; i < blocksize; i++)
+			prediction[i] = (int)upper[blocksize - 1][i];
+		predictionRow = _mm256_load_si256((__m256i*)prediction);*/		
+		for (int i = 0; i < blocksize; i++)
+			predictionRow.m256i_i32[i] = (int)upper[blocksize - 1][i];
 	}
-
+		
 	for (int y = 0; y<blocksize; y++)
 	{
-		currentRow = _mm256_load_si256((__m256i*)current[y]);	// error! upper type is unsigned char.
+		currentRow = _mm256_load_si256((__m256i*)current[y]);	// need to be changed! 2019.01.06
 		errorRow = _mm256_sub_epi32(currentRow, predictionRow);
 		tempRow = _mm256_add_epi32(tempRow, errorRow);
 	}
