@@ -5,7 +5,7 @@ This codec is called as ICSP codec because the specs and theories of this codec 
 
 if you have any kinds of feedback and question, please contact me.
 
-I will add this codec description and figures soon.
+I will upload ICSPCodec description and flow soon.
 
 ### Contents
 | Folder | description |
