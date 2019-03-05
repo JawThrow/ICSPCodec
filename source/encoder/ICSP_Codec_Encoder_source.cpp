@@ -518,20 +518,21 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	}
 
 	predVal = (predValLeft + predValUpper) / (double)(blocksize + blocksize);
+
+	// 2019.03.05
 	__m128i predVal64;
 	predVal64 = _mm_set1_epi8(predVal);
 	
 	__SIMDBLOCK crntblck;
 	__m128i tempblck;
-	__m128i resblck2[4];
+	__m128i resblck = _mm_setzero_si128();
 	for (int y = 0; y < 4; y++)
 	{
-		crntblck._m128 = _mm_loadu_si128((__m128i*)current[y]);
+		crntblck._m128 = _mm_loadu_si128((__m128i*)current[y*2]);
 		tempblck = _mm_subs_epu8(predVal64, crntblck._m128);
-		resblck2[y] = _mm_abs_epi8(tempblck);
+		tempblck = _mm_abs_epi8(tempblck);
+		resblck = _mm_add_epi32(tempblck, resblck);
 	}
-
-
 
 	for (int y = 0; y<blocksize; y++)
 	{
