@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <time.h>
+#include <immintrin.h>
 using namespace std;
 
 #define INTRA 0
@@ -11,7 +12,11 @@ using namespace std;
 #define SAVE_Y 5
 #define SAVE_YUV 6 
 
-
+union __SIMDBLOCK
+{
+	__m128i _m128;
+	__m64 _m64[2];
+};
 
 struct Block8d { double block[8][8]; };
 struct Block8i { int block[8][8]; };
