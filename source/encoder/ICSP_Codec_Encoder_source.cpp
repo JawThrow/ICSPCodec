@@ -495,36 +495,89 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	double predVal      = 0;
 	int SAE = 0;
 
-	if(left==NULL)
+
+#ifdef SIMD
+	if (left == NULL)
 	{
-		predValLeft = 128*8;
+		predValLeft = 128 * 8;
 	}
 	else
 	{
-		for(int i=0; i<blocksize; i++)
-			predValLeft += left[i][blocksize-1];
+		for (int i = 0; i<blocksize; i++)
+			predValLeft += left[i][blocksize - 1];
 	}
 
-	if(upper==NULL)
-	{		
-		predValUpper = 128*8;
+	if (upper == NULL)
+	{
+		predValUpper = 128 * 8;
 	}
 	else
 	{
-		for(int i=0; i<blocksize; i++)
-			predValUpper += upper[blocksize-1][i];
+		for (int i = 0; i<blocksize; i++)
+			predValUpper += upper[blocksize - 1][i];
 	}
 
-	predVal = (predValLeft+predValUpper) / (double)(blocksize+blocksize);
-
-	for(int y=0; y<blocksize; y++)
+	predVal = (predValLeft + predValUpper) / (double)(blocksize + blocksize);
+	__m128i predVal64;
+	predVal64 = _mm_set1_epi8(predVal);
+	
+	__SIMDBLOCK crntblck;
+	__m128i tempblck;
+	__m128i resblck2[4];
+	for (int y = 0; y < 4; y++)
 	{
-		for(int x=0; x<blocksize; x++)
+		crntblck._m128 = _mm_loadu_si128((__m128i*)current[y]);
+		tempblck = _mm_subs_epu8(predVal64, crntblck._m128);
+		resblck2[y] = _mm_abs_epi8(tempblck);
+	}
+
+
+
+	for (int y = 0; y<blocksize; y++)
+	{
+		for (int x = 0; x<blocksize; x++)
 		{
 			err_temp[y][x] = (int)current[y][x] - predVal;
 			SAE += abs(err_temp[y][x]);
 		}
 	}
+
+#else
+	if (left == NULL)
+	{
+		predValLeft = 128 * 8;
+	}
+	else
+	{
+		for (int i = 0; i<blocksize; i++)
+			predValLeft += left[i][blocksize - 1];
+	}
+
+	if (upper == NULL)
+	{
+		predValUpper = 128 * 8;
+	}
+	else
+	{
+		for (int i = 0; i<blocksize; i++)
+			predValUpper += upper[blocksize - 1][i];
+	}
+
+	predVal = (predValLeft + predValUpper) / (double)(blocksize + blocksize);
+
+	for (int y = 0; y<blocksize; y++)
+	{
+		for (int x = 0; x<blocksize; x++)
+		{
+			err_temp[y][x] = (int)current[y][x] - predVal;
+			SAE += abs(err_temp[y][x]);
+		}
+	}
+#endif
+	
+
+	// SIMD
+	
 
 
 	return SAE;
