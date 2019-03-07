@@ -516,7 +516,6 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	}
 
 	predVal = (predValLeft + predValUpper) / (double)(blocksize + blocksize);
-	clock_t tic = clock();
 #ifdef SIMD
 	int SAE_SIMD = 0;
 	__m256i predVal256;
@@ -560,12 +559,6 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 		}
 	}
 #endif
-	clock_t toc = clock();
-	double result = (double)(toc - tic)*1000;
-	printf("%lf\n", result);
-	
-
-
 	return SAE;
 }
 void IDPCM_pix_0(unsigned char upper[][8], double current[][8], unsigned char restored_temp[][8], int blocksize)
