@@ -402,10 +402,12 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 {
 	int SAE=0;
 #if SIMD
-	__m256i currentRow;
-	__m256i predictionRow;
-	__m256i errorRow;
-	__m256i tempRow = _mm256_setzero_si256();;
+	int SAE_SIMD = 0;
+	__m256i crntblck;
+	__m256i predictionRow;	
+	__m256i tempblck = _mm256_setzero_si256();;
+	__m256i resblck[2];
+
 	int prediction[8] = { 0, };
 	int *crnt[8] = { 0, };
 	if(upper==NULL)
@@ -414,23 +416,42 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	}
 	else	
 	{
-		/*for (int i = 0; i < blocksize; i++)
-			prediction[i] = (int)upper[blocksize - 1][i];
-		predictionRow = _mm256_load_si256((__m256i*)prediction);*/		
-		for (int i = 0; i < blocksize; i++)
-			predictionRow.m256i_i32[i] = (int)upper[blocksize - 1][i];
-	}
-		
-	for (int y = 0; y<blocksize; y++)
-	{
-		currentRow = _mm256_load_si256((__m256i*)current[y]);	// need to be changed! 2019.01.06
-		errorRow = _mm256_sub_epi32(currentRow, predictionRow);
-		tempRow = _mm256_add_epi32(tempRow, errorRow);
+		// awesome!
+		predictionRow = _mm256_set1_epi64x(*(__int64*)upper[blocksize - 1]);
 	}
 	
+	unsigned char errtemp[8][8];
+	for (int y = 0; y< 2 ; y++)
+	{
+		crntblck = _mm256_loadu_si256((__m256i*)current[y*4]);	// need to be changed! 2019.01.06
+		tempblck = _mm256_sub_epi8(crntblck, predictionRow);
+		_mm256_store_si256(((__m256i*)errtemp) + y, tempblck);
+		tempblck = _mm256_abs_epi8(tempblck);
+		_mm256_storeu_si256(resblck + y, tempblck);
+	}
+
+	__m256i temp;
 	for (int i = 0; i < 8; i++)
-		SAE += abs(tempRow.m256i_i32[i]);
-	printf("%d\n", SAE);
+	{
+		temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[i]);
+		memcpy(err_temp[i], &temp, sizeof(int) * 8);
+	}
+
+	for (int i = 0; i < 32; i++)
+		SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
+	
+
+	/*for (int y = 0; y<blocksize; y++)
+	{
+		for (int x = 0; x<blocksize; x++)
+		{
+			err_temp[y][x] = (int)(current[y][x] - upper[blocksize - 1][x]);
+			SAE += abs(err_temp[y][x]);
+		}
+	}
+
+	printf("%d %d\n", SAE_SIMD, SAE);*/
+	SAE = SAE_SIMD;
 #else
 	if(upper==NULL)
 	{
@@ -524,7 +545,6 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	__m256i crntblck;
 	__m256i tempblck;
 	__m256i resblck[2];
-	__m256i temp;
 
 	unsigned char errtemp[8][8];
 	for (int y = 0; y < 2; y++)
@@ -539,9 +559,9 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 
 	
 	for (int y = 0; y < 32; y++)
-		SAE_SIMD += resblck[0].m256i_i8[y] + resblck[1].m256i_i8[y];
+		SAE_SIMD += resblck[0].m256i_u8[y] + resblck[1].m256i_u8[y];
 
-	
+	__m256i temp;
 	for (int y = 0; y < 8; y++)
 	{
 		temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[y]);
