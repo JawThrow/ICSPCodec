@@ -439,7 +439,6 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	for (int i = 0; i < 32; i++)
 		SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
 
-
 	SAE = SAE_SIMD;
 #else
 	if(upper==NULL)
@@ -552,8 +551,6 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	double predVal      = 0;
 	int SAE = 0;
 
-
-#ifdef SIMD
 	if (left == NULL)
 	{
 		predValLeft = 128 * 8;
@@ -575,16 +572,15 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	}
 
 	predVal = (predValLeft + predValUpper) / (double)(blocksize + blocksize);
-
-	// 2019.03.05
+#ifdef SIMD
+	int SAE_SIMD = 0;
 	__m256i predVal256;
 	predVal256 = _mm256_set1_epi8(predVal);
 	
 	__m256i crntblck;
 	__m256i tempblck;
 	__m256i resblck[2];
-	//__m256i resblck = _mm256_setzero_si256();
-	//int errtemp[8][8];
+
 	unsigned char errtemp[8][8];
 	for (int y = 0; y < 2; y++)
 	{
@@ -596,49 +592,19 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 		_mm256_storeu_si256(resblck + y, tempblck);
 	}
 
-	int SAESIMD = 0;
-	for (int y = 0; y < 32; y++)
-		SAESIMD += resblck[0].m256i_i8[y] + resblck[1].m256i_i8[y];
-
 	
+	for (int y = 0; y < 32; y++)
+		SAE_SIMD += resblck[0].m256i_u8[y] + resblck[1].m256i_u8[y];
+
 	__m256i temp;
 	for (int y = 0; y < 8; y++)
+	{
 		temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[y]);
-
-
-	for (int y = 0; y<blocksize; y++)
-	{
-		for (int x = 0; x<blocksize; x++)
-		{
-			err_temp[y][x] = (int)current[y][x] - predVal;
-			SAE += abs(err_temp[y][x]);
-		}
+		memcpy(err_temp[y], &temp, sizeof(int) * 8);
 	}
 
-	cout << SAESIMD << " " << SAE << endl;
-#else
-	if (left == NULL)
-	{
-		predValLeft = 128 * 8;
-	}
-	else
-	{
-		for (int i = 0; i<blocksize; i++)
-			predValLeft += left[i][blocksize - 1];
-	}
-
-	if (upper == NULL)
-	{
-		predValUpper = 128 * 8;
-	}
-	else
-	{
-		for (int i = 0; i<blocksize; i++)
-			predValUpper += upper[blocksize - 1][i];
-	}
-
-	predVal = (predValLeft + predValUpper) / (double)(blocksize + blocksize);
-
+	SAE = SAE_SIMD;
+#else	
 	for (int y = 0; y<blocksize; y++)
 	{
 		for (int x = 0; x<blocksize; x++)
@@ -648,12 +614,6 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 		}
 	}
 #endif
-	
-
-	// SIMD
-	
-
-
 	return SAE;
 }
 void IDPCM_pix_0(unsigned char upper[][8], double current[][8], unsigned char restored_temp[][8], int blocksize)
