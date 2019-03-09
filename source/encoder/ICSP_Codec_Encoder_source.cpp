@@ -398,39 +398,49 @@ void intraPrediction(FrameData& frm, int QstepDC, int QstepAC)
 		free(frm.Crblocks[numOfblck16].intraInverseDCTblck);
 	}
 }
-int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // horizontal; 일단 첫번째 두번째 파라매터의 길이를 8로 static하게 고정
+int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // vertical; 일단 첫번째 두번째 파라매터의 길이를 8로 static하게 고정
 {
 	int SAE=0;
+
 #if SIMD
-	__m256i currentRow;
-	__m256i predictionRow;
-	__m256i errorRow;
-	__m256i tempRow = _mm256_setzero_si256();;
-	int prediction[8] = { 0, };
-	int *crnt[8] = { 0, };
+	int SAE_SIMD = 0;
+	__m256i crntblck;
+	__m256i predictionRow;	
+	__m256i tempblck = _mm256_setzero_si256();;
+	__m256i resblck[2];
+
 	if(upper==NULL)
 	{
-		predictionRow = _mm256_set1_epi32(128);				
+		predictionRow = _mm256_set1_epi8(128);				
 	}
 	else	
 	{
-		/*for (int i = 0; i < blocksize; i++)
-			prediction[i] = (int)upper[blocksize - 1][i];
-		predictionRow = _mm256_load_si256((__m256i*)prediction);*/		
-		for (int i = 0; i < blocksize; i++)
-			predictionRow.m256i_i32[i] = (int)upper[blocksize - 1][i];
-	}
-		
-	for (int y = 0; y<blocksize; y++)
-	{
-		currentRow = _mm256_load_si256((__m256i*)current[y]);	// need to be changed! 2019.01.06
-		errorRow = _mm256_sub_epi32(currentRow, predictionRow);
-		tempRow = _mm256_add_epi32(tempRow, errorRow);
+		// awesome!
+		predictionRow = _mm256_set1_epi64x(*(__int64*)upper[blocksize - 1]);
 	}
 	
+	unsigned char errtemp[8][8];
+	for (int y = 0; y< 2 ; y++)
+	{
+		crntblck = _mm256_loadu_si256((__m256i*)current[y*4]);
+		tempblck = _mm256_sub_epi8(crntblck, predictionRow);
+		_mm256_store_si256(((__m256i*)errtemp) + y, tempblck);
+		tempblck = _mm256_abs_epi8(tempblck);
+		_mm256_storeu_si256(resblck + y, tempblck);
+	}
+
+	__m256i temp;
 	for (int i = 0; i < 8; i++)
-		SAE += abs(tempRow.m256i_i32[i]);
-	printf("%d\n", SAE);
+	{
+		temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[i]);
+		memcpy(err_temp[i], &temp, sizeof(int) * 8);
+	}
+
+	for (int i = 0; i < 32; i++)
+		SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
+
+
+	SAE = SAE_SIMD;
 #else
 	if(upper==NULL)
 	{
@@ -442,7 +452,6 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 				SAE += abs(err_temp[y][x]);
 			}
 		}
-		printf("%d\n", SAE);
 	}
 	else
 	{
@@ -459,14 +468,60 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	
 	return SAE;
 }
-int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // vertical; 일단 첫번째 두번째 파라매터의 길이를 8로 static하게 고정
+int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // horizontal; 일단 첫번째 두번째 파라매터의 길이를 8로 static하게 고정
 {
 	int SAE=0;
-	if(left==NULL)
+#if SIMD
+	int SAE_SIMD = 0;
+	
+	__m256i predictionRow;
+	__m256i currentblck;
+	__m256i tempblck;
+	__m256i resblck[2];
+
+
+	if (left == NULL)
 	{
-		for(int y=0; y<blocksize; y++)
+		predictionRow = _mm256_set1_epi8(128);
+	}
+	else
+	{
+		unsigned char *predictionRowTemp = (unsigned char*)malloc(sizeof(unsigned char)*blocksize);
+		for (int i = 0; i < blocksize; i++)
+			predictionRowTemp[i] = left[i][blocksize - 1];
+
+		predictionRow = _mm256_set1_epi64x(*(__int64*)predictionRowTemp);
+		free(predictionRowTemp); // malloc free 겁나많이할텐데?
+	}
+
+
+	unsigned char errtemp[8][8];
+	for (int y = 0; y < 2; y++)
+	{
+		currentblck = _mm256_loadu_si256((__m256i*)current[y * 4]);
+		tempblck = _mm256_subs_epi8(currentblck, predictionRow);
+		_mm256_storeu_si256(((__m256i*)errtemp)+y, tempblck);
+		tempblck = _mm256_abs_epi8(tempblck);
+		_mm256_store_si256(resblck+y, tempblck);
+	}
+	
+	__m256i temp;
+	for (int i = 0; i < blocksize; i++)
+	{
+		temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[i]);
+		memcpy(err_temp[i], &temp, sizeof(int) * 8);
+	}
+
+	for (int i = 0; i < 32; i++)
+		SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
+
+	SAE = SAE_SIMD;
+#else
+	if (left == NULL)
+	{
+		for (int y = 0; y<blocksize; y++)
 		{
-			for(int x=0; x<blocksize; x++)
+			for (int x = 0; x<blocksize; x++)
 			{
 				err_temp[y][x] = (int)current[y][x] - 128;
 				SAE += abs(err_temp[y][x]);
@@ -475,15 +530,17 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 	}
 	else
 	{
-		for(int y=0; y<blocksize; y++)
+		for (int y = 0; y<blocksize; y++)
 		{
-			for(int x=0; x<blocksize; x++)
+			for (int x = 0; x<blocksize; x++)
 			{
-				err_temp[y][x] = current[y][x] - left[y][blocksize-1];
+				err_temp[y][x] = current[y][x] - left[y][blocksize - 1];
 				SAE += abs(err_temp[y][x]);
 			}
 		}
 	}
+#endif
+	
 
 
 	return SAE;
