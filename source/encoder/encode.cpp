@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 	//int intraPeriod = atoi(argv[5]);
 
 	int nframes = 300;
-	char *imgfname = "akiyo_cif(352X288)_300f.yuv";
+	char *imgfname = "foreman_cif(352X288)_300f.yuv";
 	int QPDC = 16;
 	int QPAC = 16;
 	int intraPeriod = ALL_INTRA;

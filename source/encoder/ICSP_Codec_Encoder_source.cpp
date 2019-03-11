@@ -5,7 +5,7 @@
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 
-#define SIMD true
+#define SIMD false
 
 char filename[256];
 
@@ -572,7 +572,8 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	}
 
 	predVal = (predValLeft + predValUpper) / (double)(blocksize + blocksize);
-#ifdef SIMD
+
+#if SIMD
 	int SAE_SIMD = 0;
 	__m256i predVal256;
 	predVal256 = _mm256_set1_epi8(predVal);
@@ -2551,7 +2552,7 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 		for(int y=0; y<blocksize; y++)
 			DCTblck->block[y][x] = temp.block[y][x] = 0;
 			
-#ifdef SIMD
+#if SIMD
 	Block8f Errblckf;
 	Block8f Errblckft;
 	float  SIMDResf = 0;
