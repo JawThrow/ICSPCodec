@@ -2768,8 +2768,8 @@ void interCbCrReconstruct(DFrameData& dcntFrm, DFrameData& dprevFrm)
 void reorderingblck(DBlockData& dbd, int numOfblck8, int predmode)
 {
 	int blocksize = dbd.blocksize2;
-	Block8i *Quanblck;
-	int* reorderedblck;
+	Block8i *Quanblck = NULL;
+	int* reorderedblck = NULL;
 	
 	if(predmode==INTRA)		 
 	{
@@ -2809,8 +2809,8 @@ void reorderingblck(DBlockData& dbd, int numOfblck8, int predmode)
 void Creorderingblck(DCBlockData& dcbd, int predmode)
 {
 	int blocksize = dcbd.blocksize;
-	Block8i *Quanblck;
-	int* reorderedblck;
+	Block8i *Quanblck = NULL;
+	int* reorderedblck = NULL;
 	
 	if(predmode==INTRA)		 
 	{
@@ -2928,8 +2928,8 @@ void izzf(int* src, Block8i& dst, int nloop, int beginidx, int blocksize)
 }
 void IQuantization_block(DBlockData &dbd, int numOfblck8, int blocksize, int QstepDC, int QstepAC, int type)
 {
-	Block8i *Quanblck;
-	Block8i *IQuanblck;
+	Block8i *Quanblck = NULL;
+	Block8i *IQuanblck = NULL;
 	if(type==INTRA)
 	{
 		Quanblck  = (dbd.intraQuanblck[numOfblck8]);
@@ -3330,8 +3330,8 @@ void IDPCM_DC_block(DFrameData &frm, int numOfblck16, int numOfblck8, int blocks
 }
 void IDCT_block(DBlockData &bd, int numOfblck8, int blocksize, int predmode)
 {
-	Block8d *IDCTblck;
-	Block8i *IQuanblck;
+	Block8d *IDCTblck = NULL;
+	Block8i *IQuanblck = NULL;
 	Block8d temp;
 	if(predmode==INTRA)
 	{
@@ -4093,8 +4093,8 @@ void intraCbCr(DFrameData& dfrm, DCBlockData &dcbbd, DCBlockData &dcrbd, int blo
 }
 void CIQuantization_block(DCBlockData& dcbd, int blocksize, int QstepDC, int QstepAC, int predmode)
 {
-	Block8i *IQuanblck;
-	Block8i *Quanblck;
+	Block8i *IQuanblck = NULL;
+	Block8i *Quanblck = NULL;
 	if(predmode==INTRA)
 	{
 		IQuanblck = (dcbd.intraInverseQuanblck);
@@ -4127,15 +4127,15 @@ void CIDPCM_DC_block(DFrameData& dfrm, DCBlockData& dcbd, int numOfblck8, int Cb
 	int numOfCurrentBlck	  = 0;
 	int a=0, b=0, c=0, median = 0;
 
-	DCBlockData* cbd;
+	DCBlockData* cbd = NULL;
 	if(CbCrtype==CB) cbd = dfrm.dcbblocks;
 	else if(CbCrtype==CR) cbd = dfrm.dcrblocks;
 
-	Block8i *IQuanblck;
-	Block8i *IQuanblckLeft;
-	Block8i *IQuanblckUpper;
-	Block8i *IQuanblckUpperLeft;
-	Block8i *IQuanblckUpperRight;
+	Block8i *IQuanblck = NULL;
+	Block8i *IQuanblckLeft = NULL;
+	Block8i *IQuanblckUpper = NULL;
+	Block8i *IQuanblckUpperLeft = NULL;
+	Block8i *IQuanblckUpperRight = NULL;
 	if(predmode==INTRA)
 	{
 		if(numOfblck8==0)
@@ -4219,8 +4219,8 @@ void CIDPCM_DC_block(DFrameData& dfrm, DCBlockData& dcbd, int numOfblck8, int Cb
 }
 void CIDCT_block(DCBlockData &dcbd, int blocksize, int predmode)
 {
-	Block8d *IDCTblck;
-	Block8i *IQuanblck;
+	Block8d *IDCTblck = NULL;
+	Block8i *IQuanblck = NULL;
 	Block8d temp;
 	if(predmode==INTRA)
 	{
