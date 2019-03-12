@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 	sprintf(imgfname, argv[6]);*/
 
 	int nframes = 300;
-	char* binfname = argv[2];
+	char* binfname = "foreman_cif(352X288)_300f_compCIF_16_16_2.bin";
 	int QPDC = 16;
 	int QPAC = 16;
 	int intraPeriod = 2;

@@ -238,7 +238,8 @@ inline void IcspCodec::init(char* binfname, int nframes)
 {
 	
 	char temp[256];
-	sprintf(temp, "..\\CIF(352x288)\\%s", binfname);
+	sprintf(temp, "data\\%s", binfname);
+
 	FILE* fp = fopen(temp, "rb");
 	if(fp==NULL)
 	{

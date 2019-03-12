@@ -5,7 +5,7 @@
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 
-#define SIMD false
+#define SIMD true
 
 char filename[256];
 
@@ -2553,7 +2553,7 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 			DCTblck->block[y][x] = temp.block[y][x] = 0;
 			
 #if SIMD
-	Block8f Errblckf;
+	/*Block8f Errblckf;
 	Block8f Errblckft;
 	float  SIMDResf = 0;
 	__m256 ErrRow;
@@ -2595,7 +2595,30 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 			DCTblck->block[v][u] = SIMDResf;
 			SIMDResf = 0.f;
 		}
+	}*/
+
+	for (int v = 0; v<blocksize; v++)
+	{
+		for (int u = 0; u<blocksize; u++)
+		{
+			for (int x = 0; x<blocksize; x++)
+			{
+				temp.block[v][u] += (double)Errblck->block[v][x] * costable[u][x];
+			}
+		}
 	}
+
+	for (int u = 0; u<blocksize; u++)
+	{
+		for (int v = 0; v<blocksize; v++)
+		{
+			for (int y = 0; y<blocksize; y++)
+			{
+				DCTblck->block[v][u] += temp.block[y][u] * costable[v][y];
+			}
+		}
+	}
+
 #else
 	for(int v=0; v<blocksize; v++)
 	{
