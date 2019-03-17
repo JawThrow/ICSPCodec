@@ -233,7 +233,7 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 		FrameData& frm = frames[numOfFrm];
 		for(int numOfblck16=0; numOfblck16<totalblck; numOfblck16++)
 		{
-			if (numOfblck16 == 94)
+			if (numOfblck16 == 94 || numOfblck16==0)
 				cout << "!" << endl;
 			BlockData& bd = frm.blocks[numOfblck16];
 			CBlockData& cbbd = frm.Cbblocks[numOfblck16];
@@ -622,7 +622,7 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	predVal = (predValLeft + predValUpper) / (double)(blocksize + blocksize);
 
 #if SIMD
-	int SAE_SIMD = 0;
+	/*int SAE_SIMD = 0;
 	__m256i predVal256;
 	predVal256 = _mm256_set1_epi8(predVal);
 	
@@ -652,7 +652,16 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 		memcpy(err_temp[y], &temp, sizeof(int) * 8);
 	}
 
-	SAE = SAE_SIMD;
+	SAE = SAE_SIMD;*/
+
+	for (int y = 0; y<blocksize; y++)
+	{
+		for (int x = 0; x<blocksize; x++)
+		{
+			err_temp[y][x] = (int)current[y][x] - predVal;
+			SAE += abs(err_temp[y][x]);
+		}
+	}
 #else	
 	for (int y = 0; y<blocksize; y++)
 	{
