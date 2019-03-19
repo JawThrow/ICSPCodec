@@ -233,7 +233,7 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 		FrameData& frm = frames[numOfFrm];
 		for(int numOfblck16=0; numOfblck16<totalblck; numOfblck16++)
 		{
-			if (numOfblck16 == 94 || numOfblck16==0)
+			if (numOfblck16 == 95)
 				cout << "!" << endl;
 			BlockData& bd = frm.blocks[numOfblck16];
 			CBlockData& cbbd = frm.Cbblocks[numOfblck16];
@@ -416,31 +416,73 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	int SAE=0;
 
 #if SIMD
+	//int SAE_SIMD = 0;
+	//__m256i crntblck;
+	//__m256i predictionRow;	
+	//__m256i tempblck = _mm256_setzero_si256();;
+	//__m256i resblck[2];
+
+	//if(upper==NULL)
+	//{
+	//	predictionRow = _mm256_set1_epi8(128);				
+	//}
+	//else	
+	//{
+	//	// awesome!
+	//	predictionRow = _mm256_set1_epi64x(*(__int64*)upper[blocksize - 1]);
+	//}
+	//
+	//unsigned char errtemp[8][8];
+	//for (int y = 0; y< 2 ; y++)
+	//{
+	//	crntblck = _mm256_loadu_si256((__m256i*)current[y*4]);
+	//	tempblck = _mm256_sub_epi8(crntblck, predictionRow);
+	//	_mm256_store_si256(((__m256i*)errtemp) + y, tempblck);
+	//	tempblck = _mm256_abs_epi8(tempblck);
+	//	_mm256_storeu_si256(resblck + y, tempblck);
+	//}
+
+	//__m256i temp;
+	//for (int i = 0; i < 8; i++)
+	//{
+	//	temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[i]);
+	//	memcpy(err_temp[i], &temp, sizeof(int) * 8);
+	//}
+
+	//for (int i = 0; i < 32; i++)
+	//	SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
+
+	//SAE = SAE_SIMD;
+	
 	int SAE_SIMD = 0;
 	__m256i crntblck;
-	__m256i predictionRow;	
+	__m256i predictionRow;
 	__m256i tempblck = _mm256_setzero_si256();;
 	__m256i resblck[2];
-
-	if(upper==NULL)
+	__m256i zeroRow = _mm256_set1_epi16(0);
+	if (upper == NULL)
 	{
-		predictionRow = _mm256_set1_epi8(128);				
+		predictionRow = _mm256_set1_epi8(128);
 	}
-	else	
+	else
 	{
 		// awesome!
-		predictionRow = _mm256_set1_epi64x(*(__int64*)upper[blocksize - 1]);
+		//predictionRow = _mm256_set1_epi64x(*(__int64*)upper[blocksize - 1]);		
+		__m256i mask = _mm256_set1_epi8(128);
+		//predictionRow = _mm256_blendv_epi8(zeroRow, *(__m256i*)upper[blocksize - 1], mask); // 85: 01010101
+		//__m256i tempPredLo = _mm256_cvtepu8_epi16(*(__m128i*)upper[blocksize - 1]);		
+		predictionRow = _mm256_unpacklo_epi8(zeroRow, *(__m256i*)upper[blocksize-1]);
 	}
-	
+
 	unsigned char errtemp[8][8];
-	for (int y = 0; y< 2 ; y++)
+	for (int y = 0; y< 2; y++)
 	{
-		crntblck = _mm256_loadu_si256((__m256i*)current[y*4]);
+		crntblck = _mm256_loadu_si256((__m256i*)current[y * 4]);
 		tempblck = _mm256_sub_epi8(crntblck, predictionRow);
 		_mm256_store_si256(((__m256i*)errtemp) + y, tempblck);
 		tempblck = _mm256_abs_epi8(tempblck);
 		_mm256_storeu_si256(resblck + y, tempblck);
-	}
+}
 
 	__m256i temp;
 	for (int i = 0; i < 8; i++)
@@ -484,63 +526,63 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 {
 	int SAE=0;
 #if SIMD
-	//int SAE_SIMD = 0;
-	//
-	//__m256i predictionRow;
-	//__m256i currentblck;
-	//__m256i tempblck;
-	//__m256i resblck[2];
+	int SAE_SIMD = 0;
+	
+	__m256i predictionRow;
+	__m256i currentblck;
+	__m256i tempblck;
+	__m256i resblck[2];
 
-
-	//if (left == NULL)
-	//{
-	//	predictionRow = _mm256_set1_epi8(128);
-	//}
-	//else
-	//{
-	//	unsigned char *predictionRowTemp = (unsigned char*)malloc(sizeof(unsigned char)*blocksize);
-	//	for (int i = 0; i < blocksize; i++)
-	//		predictionRowTemp[i] = left[i][blocksize - 1];
-
-	//	predictionRow = _mm256_set1_epi64x(*(__int64*)predictionRowTemp);
-	//	free(predictionRowTemp); // malloc free 겁나많이할텐데?
-	//}
-
-
-	//unsigned char errtemp[8][8];
-	//for (int y = 0; y < 2; y++)
-	//{
-	//	currentblck = _mm256_loadu_si256((__m256i*)current[y * 4]);
-	//	tempblck = _mm256_subs_epi8(currentblck, predictionRow);
-	//	_mm256_storeu_si256(((__m256i*)errtemp)+y, tempblck);
-	//	tempblck = _mm256_abs_epi8(tempblck);
-	//	_mm256_store_si256(resblck+y, tempblck);
-	//}
-	//
-	//__m256i temp;
-	//for (int i = 0; i < blocksize; i++)
-	//{
-	//	temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[i]);
-	//	memcpy(err_temp[i], &temp, sizeof(int) * 8);
-	//}
-
-	//for (int i = 0; i < 32; i++)
-	//	SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
-
-	//__m128i currentRow;
-	//__m128i predictionRow128;
-	//__m128i tempRow[8];
-	//for (int y = 0; y < blocksize; y++)
-	//{
-	//	predictionRow128 = _mm_set1_epi8(left[y][blocksize - 1]);
-	//	currentRow = _mm_loadl_epi64((__m128i*)current[y]);
-	//	tempRow[y] = _mm_subs_epu8(currentRow, predictionRow128);
-	//}
-
-	//
-	//SAE = SAE_SIMD;
 
 	if (left == NULL)
+	{
+		predictionRow = _mm256_set1_epi8(128);
+	}
+	else
+	{
+		unsigned char *predictionRowTemp = (unsigned char*)malloc(sizeof(unsigned char)*blocksize);
+		for (int i = 0; i < blocksize; i++)
+			predictionRowTemp[i] = left[i][blocksize - 1];
+
+		predictionRow = _mm256_set1_epi64x(*(__int64*)predictionRowTemp);
+		free(predictionRowTemp); // malloc free 겁나많이할텐데?
+	}
+
+
+	unsigned char errtemp[8][8];
+	for (int y = 0; y < 2; y++)
+	{
+		currentblck = _mm256_loadu_si256((__m256i*)current[y * 4]);
+		tempblck = _mm256_subs_epi8(currentblck, predictionRow);
+		_mm256_storeu_si256(((__m256i*)errtemp)+y, tempblck);
+		tempblck = _mm256_abs_epi8(tempblck);
+		_mm256_store_si256(resblck+y, tempblck);
+	}
+	
+	__m256i temp;
+	for (int i = 0; i < blocksize; i++)
+	{
+		temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[i]);
+		memcpy(err_temp[i], &temp, sizeof(int) * 8);
+	}
+
+	for (int i = 0; i < 32; i++)
+		SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
+
+	__m128i currentRow;
+	__m128i predictionRow128;
+	__m128i tempRow[8];
+	for (int y = 0; y < blocksize; y++)
+	{
+		predictionRow128 = _mm_set1_epi8(left[y][blocksize - 1]);
+		currentRow = _mm_loadl_epi64((__m128i*)current[y]);
+		tempRow[y] = _mm_subs_epu8(currentRow, predictionRow128);
+	}
+
+	
+	SAE = SAE_SIMD;
+
+	/*if (left == NULL)
 	{
 		for (int y = 0; y<blocksize; y++)
 		{
@@ -561,7 +603,7 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 				SAE += abs(err_temp[y][x]);
 			}
 		}
-	}
+	}*/
 
 #else
 	if (left == NULL)
@@ -622,7 +664,7 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	predVal = (predValLeft + predValUpper) / (double)(blocksize + blocksize);
 
 #if SIMD
-	/*int SAE_SIMD = 0;
+	int SAE_SIMD = 0;
 	__m256i predVal256;
 	predVal256 = _mm256_set1_epi8(predVal);
 	
@@ -652,16 +694,7 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 		memcpy(err_temp[y], &temp, sizeof(int) * 8);
 	}
 
-	SAE = SAE_SIMD;*/
-
-	for (int y = 0; y<blocksize; y++)
-	{
-		for (int x = 0; x<blocksize; x++)
-		{
-			err_temp[y][x] = (int)current[y][x] - predVal;
-			SAE += abs(err_temp[y][x]);
-		}
-	}
+	SAE = SAE_SIMD;
 #else	
 	for (int y = 0; y<blocksize; y++)
 	{
@@ -6531,108 +6564,108 @@ void checkRestructed(FrameData* frms, int nframes, int width, int height, int pr
 	FILE* fp;
 	char CIF_path[256] = "..\\CIF(352x288)";
 	char output_name[256];
-	if(chtype == 1) sprintf(output_name, "Test_Restructed_Ychannel.yuv");
-	else if(chtype == 3) sprintf(output_name, "Test_Restructed_YCbCr.yuv");
+	if (chtype == 1) sprintf(output_name, "Test_Restructed_Ychannel.yuv");
+	else if (chtype == 3) sprintf(output_name, "Test_Restructed_YCbCr.yuv");
 
 	char output_fname[256];
 	sprintf(output_fname, "%s\\%s", CIF_path, output_name);
 	fp = fopen(output_fname, "wb");
 
-	int blocksize1  = frms->blocks->blocksize1;
-	int blocksize2  = frms->blocks->blocksize2;
-	int totalblck   = frms->nblocks16;
-	int nblck8      = frms->nblocks8;
-	int splitWidth  = frms->splitWidth;
+	int blocksize1 = frms->blocks->blocksize1;
+	int blocksize2 = frms->blocks->blocksize2;
+	int totalblck = frms->nblocks16;
+	int nblck8 = frms->nblocks8;
+	int splitWidth = frms->splitWidth;
 	int splitHeight = frms->splitHeight;
-	int CbCrSplitWidth  = frms->CbCrSplitWidth;
+	int CbCrSplitWidth = frms->CbCrSplitWidth;
 	int CbCrSplitHeight = frms->CbCrSplitHeight;
-	int CbCrWidth  = frms->CbCrWidth;
+	int CbCrWidth = frms->CbCrWidth;
 	int CbCrHeight = frms->CbCrHeight;
 
 
-	unsigned char* Ychannel = (unsigned char *) calloc(width * height, sizeof(unsigned char));
-	unsigned char* Cbchannel = (unsigned char *) calloc((width/2) * (height/2), sizeof(unsigned char));
-	unsigned char* Crchannel = (unsigned char *) calloc((width/2) * (height/2), sizeof(unsigned char));
+	unsigned char* Ychannel = (unsigned char *)calloc(width * height, sizeof(unsigned char));
+	unsigned char* Cbchannel = (unsigned char *)calloc((width / 2) * (height / 2), sizeof(unsigned char));
+	unsigned char* Crchannel = (unsigned char *)calloc((width / 2) * (height / 2), sizeof(unsigned char));
 
 	int temp = 0;
 	int tempCb = 0;
 	int tempCr = 0;
-	int nblck=0;	
-	if(chtype == 1)
+	int nblck = 0;
+	if (chtype == 1)
 	{
-		for(int nfrm=0; nfrm<nframes; nfrm++)
+		for (int nfrm = 0; nfrm < nframes; nfrm++)
 		{
 			FrameData& frm = frms[nfrm]; // frame
-			nblck=0;
-			for(int y_interval=0; y_interval<splitHeight; y_interval++)
+			nblck = 0;
+			for (int y_interval = 0; y_interval < splitHeight; y_interval++)
 			{
-				for(int x_interval=0; x_interval<splitWidth; x_interval++)
-				{			
+				for (int x_interval = 0; x_interval < splitWidth; x_interval++)
+				{
 					BlockData &bd = frm.blocks[nblck]; // nblck++
 
-					for(int y=0; y<blocksize1; y++)
+					for (int y = 0; y < blocksize1; y++)
 					{
-						for(int x=0; x<blocksize1; x++)
-						{							
-							Ychannel[(y_interval*blocksize1*width) + (y*width) + (x_interval*blocksize1)+x] = bd.intraRestructedblck16.block[y][x];
+						for (int x = 0; x < blocksize1; x++)
+						{
+							Ychannel[(y_interval*blocksize1*width) + (y*width) + (x_interval*blocksize1) + x] = bd.intraRestructedblck16.block[y][x];
 						}
 					}
 					nblck++;
-				}		
-			}			
+				}
+			}
 			fwrite(Ychannel, width*height, sizeof(unsigned char), fp);
 		}
 	}
-	else if(chtype == 3)
+	else if (chtype == 3)
 	{
-		for(int nfrm=0; nfrm<nframes; nfrm++)
+		for (int nfrm = 0; nfrm < nframes; nfrm++)
 		{
 			FrameData& frm = frms[nfrm]; // frame
-			nblck=0;
-			for(int y_interval=0; y_interval<splitHeight; y_interval++)
+			nblck = 0;
+			for (int y_interval = 0; y_interval < splitHeight; y_interval++)
 			{
-				for(int x_interval=0; x_interval<splitWidth; x_interval++)
-				{			
+				for (int x_interval = 0; x_interval < splitWidth; x_interval++)
+				{
 					BlockData &bd = frm.blocks[nblck]; // nblck++
 
-					for(int y=0; y<blocksize1; y++)
+					for (int y = 0; y < blocksize1; y++)
 					{
-						for(int x=0; x<blocksize1; x++)
+						for (int x = 0; x < blocksize1; x++)
 						{
-							Ychannel[(y_interval*blocksize1*width) + (y*width) + (x_interval*blocksize1)+x] = bd.intraRestructedblck16.block[y][x];
+							Ychannel[(y_interval*blocksize1*width) + (y*width) + (x_interval*blocksize1) + x] = bd.intraRestructedblck16.block[y][x];
 						}
 					}
 					nblck++;
-				}		
-			}			
-			nblck=0;
-			for(int y_interval=0; y_interval<CbCrSplitHeight; y_interval++)
+				}
+			}
+			nblck = 0;
+			for (int y_interval = 0; y_interval < CbCrSplitHeight; y_interval++)
 			{
-				for(int x_interval=0; x_interval<CbCrSplitWidth; x_interval++)
-				{			
+				for (int x_interval = 0; x_interval < CbCrSplitWidth; x_interval++)
+				{
 					CBlockData &cbbd = frm.Cbblocks[nblck]; // nblck++
 					CBlockData &crbd = frm.Crblocks[nblck];
-					int index=0;
-					for(int y=0; y<blocksize2; y++)
+					int index = 0;
+					for (int y = 0; y < blocksize2; y++)
 					{
-						for(int x=0; x<blocksize2; x++)
-						{							
-							tempCb = (cbbd.intraInverseDCTblck->block[y][x]>255) ? 255:cbbd.intraInverseDCTblck->block[y][x];							
-							tempCb = (tempCb<0) ? 0 :tempCb;
-							index = (y_interval*blocksize2*CbCrWidth) + (y*CbCrWidth) + (x_interval*blocksize2)+x;
+						for (int x = 0; x < blocksize2; x++)
+						{
+							tempCb = (cbbd.intraInverseDCTblck->block[y][x] > 255) ? 255 : cbbd.intraInverseDCTblck->block[y][x];
+							tempCb = (tempCb < 0) ? 0 : tempCb;
+							index = (y_interval*blocksize2*CbCrWidth) + (y*CbCrWidth) + (x_interval*blocksize2) + x;
 							Cbchannel[index] = tempCb;
 
-							tempCr = (crbd.intraInverseDCTblck->block[y][x]>255) ? 255:crbd.intraInverseDCTblck->block[y][x];
-							tempCr = (tempCr<0) ? 0:tempCr;
+							tempCr = (crbd.intraInverseDCTblck->block[y][x] > 255) ? 255 : crbd.intraInverseDCTblck->block[y][x];
+							tempCr = (tempCr < 0) ? 0 : tempCr;
 							Crchannel[index] = tempCr;
 						}
 					}
 					nblck++;
-				}		
-			}	
+				}
+			}
 			fwrite(Ychannel, width*height, sizeof(unsigned char), fp);
-			fwrite(Cbchannel, sizeof(unsigned char), (width/2)*(height/2), fp);
-			fwrite(Crchannel, sizeof(unsigned char), (width/2)*(height/2), fp);		
+			fwrite(Cbchannel, sizeof(unsigned char), (width / 2)*(height / 2), fp);
+			fwrite(Crchannel, sizeof(unsigned char), (width / 2)*(height / 2), fp);
 		}
 	}
 
