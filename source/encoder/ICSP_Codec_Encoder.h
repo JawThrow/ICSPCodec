@@ -12,10 +12,10 @@ using namespace std;
 #define SAVE_Y 5
 #define SAVE_YUV 6 
 
-union __SIMDBLOCK
+union __mmMIXED
 {
-	__m128i _m128;
-	__m64 _m64[2];
+	__m256i blck256;
+	__m128i blck128[2];
 };
 
 struct Block8d { double block[8][8]; };

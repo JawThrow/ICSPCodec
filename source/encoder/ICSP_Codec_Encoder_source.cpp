@@ -233,8 +233,8 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 		FrameData& frm = frames[numOfFrm];
 		for(int numOfblck16=0; numOfblck16<totalblck; numOfblck16++)
 		{
-			if (numOfblck16 == 95)
-				cout << "!" << endl;
+			/*if (numOfblck16 == 95)
+				cout << "!" << endl;*/
 			BlockData& bd = frm.blocks[numOfblck16];
 			CBlockData& cbbd = frm.Cbblocks[numOfblck16];
 			CBlockData& crbd = frm.Crblocks[numOfblck16];
@@ -457,7 +457,9 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	int SAE_SIMD = 0;
 	__m256i crntblck;
 	__m256i predictionRow;
-	__m256i tempblck = _mm256_setzero_si256();;
+	__m256i subblck = _mm256_setzero_si256();
+	__m256i absblck = _mm256_setzero_si256();
+	__m256i tempblck[2];
 	__m256i resblck[2];
 	__m256i zeroRow = _mm256_set1_epi16(0);
 	if (upper == NULL)
@@ -467,27 +469,35 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	else
 	{
 		// awesome!
-		//predictionRow = _mm256_set1_epi64x(*(__int64*)upper[blocksize - 1]);		
-		__m256i mask = _mm256_set1_epi8(128);
-		//predictionRow = _mm256_blendv_epi8(zeroRow, *(__m256i*)upper[blocksize - 1], mask); // 85: 01010101
-		//__m256i tempPredLo = _mm256_cvtepu8_epi16(*(__m128i*)upper[blocksize - 1]);		
-		predictionRow = _mm256_unpacklo_epi8(zeroRow, *(__m256i*)upper[blocksize-1]);
+		__m256i tempPredLo = _mm256_cvtepu8_epi16(*(__m128i*)upper[blocksize - 1]);
+		predictionRow = _mm256_set_m128i(*(__m128i*)&tempPredLo, *(__m128i*)&tempPredLo);
 	}
 
-	unsigned char errtemp[8][8];
-	for (int y = 0; y< 2; y++)
+	short errtemp[8][8];
+	__mmMIXED _mixed;
+	
+	
+	for (int y = 0; y < 2; y++)
 	{
-		crntblck = _mm256_loadu_si256((__m256i*)current[y * 4]);
-		tempblck = _mm256_sub_epi8(crntblck, predictionRow);
-		_mm256_store_si256(((__m256i*)errtemp) + y, tempblck);
-		tempblck = _mm256_abs_epi8(tempblck);
-		_mm256_storeu_si256(resblck + y, tempblck);
-}
+		_mixed.blck256 = _mm256_loadu_si256((__m256i*)current[y * 4]);
+		crntblck = _mm256_cvtepu8_epi16(_mixed.blck128[0]);
+		subblck = _mm256_sub_epi16(crntblck, predictionRow);
+		absblck = _mm256_abs_epi16(subblck);
+		_mm256_storeu_si256(tempblck, absblck);
+		_mm256_store_si256((__m256i*)errtemp + (2 * y), subblck);
+
+		crntblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
+		subblck = _mm256_sub_epi16(crntblck, predictionRow);
+		absblck = _mm256_abs_epi16(subblck);
+		_mm256_storeu_si256(tempblck +1, absblck);
+		_mm256_store_si256((__m256i*)errtemp + (2 * y + 1), subblck);
+		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
+	}
 
 	__m256i temp;
 	for (int i = 0; i < 8; i++)
 	{
-		temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[i]);
+		temp = _mm256_cvtepi16_epi32(*(__m128i*)errtemp[i]);
 		memcpy(err_temp[i], &temp, sizeof(int) * 8);
 	}
 
@@ -519,7 +529,7 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 		}
 	}
 #endif
-	
+	cout << SAE << "\n";
 	return SAE;
 }
 int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // horizontal; 일단 첫번째 두번째 파라매터의 길이를 8로 static하게 고정
