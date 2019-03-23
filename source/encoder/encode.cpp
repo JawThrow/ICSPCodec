@@ -3,7 +3,8 @@
 
 extern char filename[256];
 
-int main(int argc, char *argv[])
+//int main(int argc, char *argv[])
+int main(void)
 {
 
 	//int nframes = atoi(argv[1]);
@@ -14,8 +15,8 @@ int main(int argc, char *argv[])
 
 	int nframes = 90;
 	char *imgfname = "football_cif(352X288)_90f.yuv";
-	int QPDC = 16;
-	int QPAC = 16;
+	int QPDC = 1;
+	int QPAC = 1;
 	int intraPeriod = ALL_INTRA;
 	_splitpath(imgfname, NULL, NULL, filename, NULL);
 	
