@@ -461,10 +461,10 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	__m256i absblck = _mm256_setzero_si256();
 	__m256i tempblck[2];
 	__m256i resblck[2];
-	__m256i zeroRow = _mm256_set1_epi16(0);
+
 	if (upper == NULL)
 	{
-		predictionRow = _mm256_set1_epi8(128);
+		predictionRow = _mm256_set1_epi16(128);
 	}
 	else
 	{
@@ -475,8 +475,7 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 
 	short errtemp[8][8];
 	__mmMIXED _mixed;
-	
-	
+		
 	for (int y = 0; y < 2; y++)
 	{
 		_mixed.blck256 = _mm256_loadu_si256((__m256i*)current[y * 4]);
@@ -484,18 +483,18 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 		subblck = _mm256_sub_epi16(crntblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
 		_mm256_storeu_si256(tempblck, absblck);
-		_mm256_store_si256((__m256i*)errtemp + (2 * y), subblck);
+		_mm256_storeu_si256((__m256i*)errtemp + (2 * y), subblck);
 
 		crntblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
 		subblck = _mm256_sub_epi16(crntblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
 		_mm256_storeu_si256(tempblck +1, absblck);
-		_mm256_store_si256((__m256i*)errtemp + (2 * y + 1), subblck);
+		_mm256_storeu_si256((__m256i*)errtemp + (2 * y + 1), subblck);
 		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
 	}
 
 	__m256i temp;
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < blocksize; i++)
 	{
 		temp = _mm256_cvtepi16_epi32(*(__m128i*)errtemp[i]);
 		memcpy(err_temp[i], &temp, sizeof(int) * 8);
@@ -529,92 +528,120 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 		}
 	}
 #endif
-	cout << SAE << "\n";
+	//cout << SAE << "\n";
 	return SAE;
 }
 int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // horizontal; 일단 첫번째 두번째 파라매터의 길이를 8로 static하게 고정
 {
-	int SAE=0;
+	int SAE = 0;
 #if SIMD
+	//int SAE_SIMD = 0;
+	//
+	//__m256i predictionRow;
+	//__m256i currentblck;
+	//__m256i tempblck;
+	//__m256i resblck[2];
+
+
+	//if (left == NULL)
+	//{
+	//	predictionRow = _mm256_set1_epi8(128);
+	//}
+	//else
+	//{
+	//	unsigned char *predictionRowTemp = (unsigned char*)malloc(sizeof(unsigned char)*blocksize);
+	//	for (int i = 0; i < blocksize; i++)
+	//		predictionRowTemp[i] = left[i][blocksize - 1];
+
+	//	predictionRow = _mm256_set1_epi64x(*(__int64*)predictionRowTemp);
+	//	free(predictionRowTemp); // malloc free 겁나많이할텐데?
+	//}
+
+
+	//unsigned char errtemp[8][8];
+	//for (int y = 0; y < 2; y++)
+	//{
+	//	currentblck = _mm256_loadu_si256((__m256i*)current[y * 4]);
+	//	tempblck = _mm256_subs_epi8(currentblck, predictionRow);
+	//	_mm256_storeu_si256(((__m256i*)errtemp)+y, tempblck);
+	//	tempblck = _mm256_abs_epi8(tempblck);
+	//	_mm256_store_si256(resblck+y, tempblck);
+	//}
+	//
+	//__m256i temp;
+	//for (int i = 0; i < blocksize; i++)
+	//{
+	//	temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[i]);
+	//	memcpy(err_temp[i], &temp, sizeof(int) * 8);
+	//}
+
+	//for (int i = 0; i < 32; i++)
+	//	SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
+
+	//__m128i currentRow;
+	//__m128i predictionRow128;
+	//__m128i tempRow[8];
+	//for (int y = 0; y < blocksize; y++)
+	//{
+	//	predictionRow128 = _mm_set1_epi8(left[y][blocksize - 1]);
+	//	currentRow = _mm_loadl_epi64((__m128i*)current[y]);
+	//	tempRow[y] = _mm_subs_epu8(currentRow, predictionRow128);
+	//}
+
+	//
+	//SAE = SAE_SIMD;
+
 	int SAE_SIMD = 0;
 	
 	__m256i predictionRow;
 	__m256i currentblck;
-	__m256i tempblck;
-	__m256i resblck[2];
-
-
+	__m256i subblck = _mm256_setzero_si256();
+	__m256i absblck = _mm256_setzero_si256();
+	__m256i tempblck[2];
+	__m256i resblck[2];	
+	__mmMIXED _mixed;
+	short predictionRowTemp[8] = { 0, };
+	short errtemp[8][8] = { 0, };
 	if (left == NULL)
 	{
-		predictionRow = _mm256_set1_epi8(128);
+		predictionRow = _mm256_set1_epi16(128);
 	}
 	else
 	{
-		unsigned char *predictionRowTemp = (unsigned char*)malloc(sizeof(unsigned char)*blocksize);
 		for (int i = 0; i < blocksize; i++)
 			predictionRowTemp[i] = left[i][blocksize - 1];
-
-		predictionRow = _mm256_set1_epi64x(*(__int64*)predictionRowTemp);
-		free(predictionRowTemp); // malloc free 겁나많이할텐데?
+		predictionRow = _mm256_set_m128i(*(__m128i*)&predictionRowTemp, *(__m128i*)&predictionRowTemp);
 	}
 
-
-	unsigned char errtemp[8][8];
 	for (int y = 0; y < 2; y++)
 	{
-		currentblck = _mm256_loadu_si256((__m256i*)current[y * 4]);
-		tempblck = _mm256_subs_epi8(currentblck, predictionRow);
-		_mm256_storeu_si256(((__m256i*)errtemp)+y, tempblck);
-		tempblck = _mm256_abs_epi8(tempblck);
-		_mm256_store_si256(resblck+y, tempblck);
+		_mixed.blck256 = _mm256_loadu_si256((__m256i*)current[y * 4]);
+		currentblck = _mm256_cvtepu8_epi16(_mixed.blck128[0]);
+		subblck = _mm256_sub_epi16(currentblck, predictionRow);
+		absblck = _mm256_abs_epi16(subblck);
+		_mm256_storeu_si256(tempblck, absblck);
+		_mm256_storeu_si256((__m256i*)(errtemp + (2 * y)), subblck);
+
+		currentblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
+		subblck = _mm256_sub_epi16(currentblck, predictionRow);
+		absblck = _mm256_abs_epi16(subblck);
+		_mm256_storeu_si256(tempblck+1, absblck);
+		_mm256_storeu_si256((__m256i*)errtemp + (2 * y + 1), subblck);
+		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
 	}
+
 	
 	__m256i temp;
 	for (int i = 0; i < blocksize; i++)
 	{
-		temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[i]);
-		memcpy(err_temp[i], &temp, sizeof(int) * 8);
+		temp = _mm256_cvtepi16_epi32(*(__m128i*)errtemp[i]);
+		memcpy(err_temp[i], &temp, sizeof(int)*blocksize);
 	}
 
 	for (int i = 0; i < 32; i++)
 		SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
 
-	__m128i currentRow;
-	__m128i predictionRow128;
-	__m128i tempRow[8];
-	for (int y = 0; y < blocksize; y++)
-	{
-		predictionRow128 = _mm_set1_epi8(left[y][blocksize - 1]);
-		currentRow = _mm_loadl_epi64((__m128i*)current[y]);
-		tempRow[y] = _mm_subs_epu8(currentRow, predictionRow128);
-	}
-
-	
-	SAE = SAE_SIMD;
-
-	/*if (left == NULL)
-	{
-		for (int y = 0; y<blocksize; y++)
-		{
-			for (int x = 0; x<blocksize; x++)
-			{
-				err_temp[y][x] = (int)current[y][x] - 128;
-				SAE += abs(err_temp[y][x]);
-			}
-		}
-	}
-	else
-	{
-		for (int y = 0; y<blocksize; y++)
-		{
-			for (int x = 0; x<blocksize; x++)
-			{
-				err_temp[y][x] = current[y][x] - left[y][blocksize - 1];
-				SAE += abs(err_temp[y][x]);
-			}
-		}
-	}*/
-
+	SAE = SAE_SIMD;		
 #else
 	if (left == NULL)
 	{
@@ -674,7 +701,7 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	predVal = (predValLeft + predValUpper) / (double)(blocksize + blocksize);
 
 #if SIMD
-	int SAE_SIMD = 0;
+	/*int SAE_SIMD = 0;
 	__m256i predVal256;
 	predVal256 = _mm256_set1_epi8(predVal);
 	
@@ -704,7 +731,52 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 		memcpy(err_temp[y], &temp, sizeof(int) * 8);
 	}
 
+	SAE = SAE_SIMD;*/
+
+
+	int SAE_SIMD = 0;
+	__m256i predictionRow;
+	__m256i crntblck;
+	__m256i subblck = _mm256_setzero_si256();
+	__m256i absblck = _mm256_setzero_si256();
+	__m256i tempblck[2];
+	__m256i resblck[2];
+	__mmMIXED _mixed;
+	short errtemp[8][8];
+
+	predictionRow = _mm256_set1_epi16(predVal);
+	
+	for (int y = 0; y < 2; y++)
+	{
+		_mixed.blck256 = _mm256_loadu_si256((__m256i*)current[y * 4]);
+		crntblck = _mm256_cvtepu8_epi16(_mixed.blck128[0]);
+		subblck = _mm256_sub_epi16(crntblck, predictionRow);
+		absblck = _mm256_abs_epi16(subblck);
+		_mm256_storeu_si256(tempblck, absblck);
+		_mm256_storeu_si256((__m256i*)errtemp + (2 * y), subblck);
+
+		crntblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
+		subblck = _mm256_sub_epi16(crntblck, predictionRow);
+		absblck = _mm256_abs_epi16(subblck);
+		_mm256_storeu_si256(tempblck + 1, absblck);
+		_mm256_storeu_si256((__m256i*)errtemp + (2 * y + 1), subblck);
+		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
+	}
+
+
+	__m256i temp;
+	for (int i = 0; i < blocksize; i++)
+	{
+		temp = _mm256_cvtepi16_epi32(*(__m128i*)errtemp[i]);
+		memcpy(err_temp[i], &temp, sizeof(int)*blocksize);
+	}
+
+	for (int i = 0; i < 32; i++)
+		SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
+
 	SAE = SAE_SIMD;
+
+
 #else	
 	for (int y = 0; y<blocksize; y++)
 	{
