@@ -15,8 +15,8 @@ int main(void)
 
 	int nframes = 90;
 	char *imgfname = "football_cif(352X288)_90f.yuv";
-	int QPDC = 1;
-	int QPAC = 1;
+	int QPDC = 16;
+	int QPAC = 16;
 	int intraPeriod = ALL_INTRA;
 	_splitpath(imgfname, NULL, NULL, filename, NULL);
 	

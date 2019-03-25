@@ -468,7 +468,6 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	}
 	else
 	{
-		// awesome!
 		__m256i tempPredLo = _mm256_cvtepu8_epi16(*(__m128i*)upper[blocksize - 1]);
 		predictionRow = _mm256_set_m128i(*(__m128i*)&tempPredLo, *(__m128i*)&tempPredLo);
 	}
@@ -604,18 +603,37 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 	short errtemp[8][8] = { 0, };
 	if (left == NULL)
 	{
-		predictionRow = _mm256_set1_epi16(128);
+		for (int i = 0; i < blocksize; i++)
+			predictionRowTemp[i] = 128;
 	}
 	else
 	{
 		for (int i = 0; i < blocksize; i++)
 			predictionRowTemp[i] = left[i][blocksize - 1];
-		predictionRow = _mm256_set_m128i(*(__m128i*)&predictionRowTemp, *(__m128i*)&predictionRowTemp);
+		/*predictionRow = _mm256_set_m128i(*(__m128i*)&predictionRowTemp, *(__m128i*)&predictionRowTemp);*/
 	}
 
 	for (int y = 0; y < 2; y++)
 	{
 		_mixed.blck256 = _mm256_loadu_si256((__m256i*)current[y * 4]);
+		predictionRow = _mm256_set_m128i(*(__m128i*)&predictionRowTemp[y], *(__m128i*)&predictionRowTemp[y + 1]);		
+		currentblck = _mm256_cvtepu8_epi16(_mixed.blck128[0]);		
+		subblck = _mm256_sub_epi16(currentblck, predictionRow);
+		absblck = _mm256_abs_epi16(subblck);
+		_mm256_storeu_si256(tempblck, absblck);
+		_mm256_storeu_si256((__m256i*)(errtemp + (2 * y)), subblck);
+
+
+
+		predictionRow = _mm256_set_m128i(*(__m128i*)&predictionRowTemp[y + 2], *(__m128i*)&predictionRowTemp[y + 3]);
+		currentblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
+		subblck = _mm256_sub_epi16(currentblck, predictionRow);
+		absblck = _mm256_abs_epi16(subblck);
+		_mm256_storeu_si256(tempblck + 1, absblck);
+		_mm256_storeu_si256((__m256i*)(errtemp + (2 * y + 1)), subblck);
+		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
+
+		/*_mixed.blck256 = _mm256_loadu_si256((__m256i*)current[y * 4]);
 		currentblck = _mm256_cvtepu8_epi16(_mixed.blck128[0]);
 		subblck = _mm256_sub_epi16(currentblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
@@ -627,7 +645,10 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 		absblck = _mm256_abs_epi16(subblck);
 		_mm256_storeu_si256(tempblck+1, absblck);
 		_mm256_storeu_si256((__m256i*)errtemp + (2 * y + 1), subblck);
-		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
+		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);*/
+		
+
+
 	}
 
 	
