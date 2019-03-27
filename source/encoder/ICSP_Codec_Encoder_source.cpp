@@ -7,6 +7,8 @@
 
 #define SIMD true
 
+
+FILE* gfp;
 char filename[256];
 
 /* initiation function*/
@@ -224,10 +226,12 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 	int splitHeight = frames->splitHeight;
 
 #if SIMD
-	FILE* fp = fopen("IntraErrCheckSIMD.txt", "at");
+	gfp = fopen("DPCM_pix_2_Vector.txt", "wt");
 #else
-	FILE* fp = fopen("IntraErrCheck.txt", "at");
+	gfp = fopen("DPCM_pix_2_Scalar.txt", "wt");
 #endif
+
+
 	for(int numOfFrm=0; numOfFrm<nframes; numOfFrm++)
 	{
 		FrameData& frm = frames[numOfFrm];
@@ -317,7 +321,8 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			free(frm.Crblocks[numOfblck16].intraInverseDCTblck);
 		}
 	}
-	fclose(fp);
+	
+	fclose(gfp);
 	// restructedY는 checkResultFrames에서 사용하므로 free는 나중에 하자
 	
 	return 0;
@@ -528,6 +533,7 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	}
 #endif
 	//cout << SAE << "\n";
+	//fprintf(gfp, "%d\n", SAE);
 	return SAE;
 }
 int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // horizontal; 일단 첫번째 두번째 파라매터의 길이를 8로 static하게 고정
@@ -599,56 +605,38 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 	__m256i tempblck[2];
 	__m256i resblck[2];	
 	__mmMIXED _mixed;
-	short predictionRowTemp[8] = { 0, };
+	__mmMIXED PredMixed[4];
 	short errtemp[8][8] = { 0, };
 	if (left == NULL)
 	{
 		for (int i = 0; i < blocksize; i++)
-			predictionRowTemp[i] = 128;
+			PredMixed[i / 2].blck128[i % 2] = _mm_set1_epi16(128);
 	}
 	else
 	{
 		for (int i = 0; i < blocksize; i++)
-			predictionRowTemp[i] = left[i][blocksize - 1];
-		/*predictionRow = _mm256_set_m128i(*(__m128i*)&predictionRowTemp, *(__m128i*)&predictionRowTemp);*/
+		{
+			PredMixed[i / 2].blck128[i % 2] = _mm_set1_epi16((short)left[i][blocksize - 1]);
+		}
 	}
 
 	for (int y = 0; y < 2; y++)
 	{
 		_mixed.blck256 = _mm256_loadu_si256((__m256i*)current[y * 4]);
-		predictionRow = _mm256_set_m128i(*(__m128i*)&predictionRowTemp[y], *(__m128i*)&predictionRowTemp[y + 1]);		
+		predictionRow = _mm256_set_m128i(PredMixed[2 * y].blck128[1], PredMixed[2 * y].blck128[0]);
 		currentblck = _mm256_cvtepu8_epi16(_mixed.blck128[0]);		
 		subblck = _mm256_sub_epi16(currentblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
 		_mm256_storeu_si256(tempblck, absblck);
 		_mm256_storeu_si256((__m256i*)(errtemp + (2 * y)), subblck);
 
-
-
-		predictionRow = _mm256_set_m128i(*(__m128i*)&predictionRowTemp[y + 2], *(__m128i*)&predictionRowTemp[y + 3]);
+		predictionRow = _mm256_set_m128i(PredMixed[2 * y + 1].blck128[1], PredMixed[2 * y + 1].blck128[0]);
 		currentblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
 		subblck = _mm256_sub_epi16(currentblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
 		_mm256_storeu_si256(tempblck + 1, absblck);
 		_mm256_storeu_si256((__m256i*)(errtemp + (2 * y + 1)), subblck);
 		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
-
-		/*_mixed.blck256 = _mm256_loadu_si256((__m256i*)current[y * 4]);
-		currentblck = _mm256_cvtepu8_epi16(_mixed.blck128[0]);
-		subblck = _mm256_sub_epi16(currentblck, predictionRow);
-		absblck = _mm256_abs_epi16(subblck);
-		_mm256_storeu_si256(tempblck, absblck);
-		_mm256_storeu_si256((__m256i*)(errtemp + (2 * y)), subblck);
-
-		currentblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
-		subblck = _mm256_sub_epi16(currentblck, predictionRow);
-		absblck = _mm256_abs_epi16(subblck);
-		_mm256_storeu_si256(tempblck+1, absblck);
-		_mm256_storeu_si256((__m256i*)errtemp + (2 * y + 1), subblck);
-		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);*/
-		
-
-
 	}
 
 	
@@ -689,7 +677,7 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 #endif
 	
 
-
+	//fprintf(gfp, "%d\n", SAE);
 	return SAE;
 }
 int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // DC; 일단 첫번째 두번째 파라매터의 길이를 8로 static하게 고정
@@ -808,6 +796,7 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 		}
 	}
 #endif
+	//fprintf(gfp, "%d\n", SAE);
 	return SAE;
 }
 void IDPCM_pix_0(unsigned char upper[][8], double current[][8], unsigned char restored_temp[][8], int blocksize)
@@ -1543,6 +1532,9 @@ void DPCM_pix_block(FrameData &frm, int numOfblck16, int numOfblck8, int blocksi
 			break;
 		}
 	}
+
+
+	//fprintf(gfp, "%d\n", bd.DPCMmodePred[numOfCurrentBlck]);
 
 	for(int i=0; i<blocksize; i++)
 	{
