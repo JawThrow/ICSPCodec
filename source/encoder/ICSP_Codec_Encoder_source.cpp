@@ -226,9 +226,9 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 	int splitHeight = frames->splitHeight;
 
 #if SIMD
-	gfp = fopen("DPCM_pix_2_Vector.txt", "wt");
+	gfp = fopen("Intra_MODE_Vector.txt", "wt");
 #else
-	gfp = fopen("DPCM_pix_2_Scalar.txt", "wt");
+	gfp = fopen("Intra_MODE_Scalar.txt", "wt");
 #endif
 
 
@@ -466,6 +466,8 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	__m256i absblck = _mm256_setzero_si256();
 	__m256i tempblck[2];
 	__m256i resblck[2];
+	__mmMIXED _mixed;
+	short errtemp[8][8];
 
 	if (upper == NULL)
 	{
@@ -477,9 +479,6 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 		predictionRow = _mm256_set_m128i(*(__m128i*)&tempPredLo, *(__m128i*)&tempPredLo);
 	}
 
-	short errtemp[8][8];
-	__mmMIXED _mixed;
-		
 	for (int y = 0; y < 2; y++)
 	{
 		_mixed.blck256 = _mm256_loadu_si256((__m256i*)current[y * 4]);
@@ -505,7 +504,34 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	}
 
 	for (int i = 0; i < 32; i++)
-		SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
+		SAE_SIMD += (int)resblck[0].m256i_u8[i] + (int)resblck[1].m256i_u8[i];
+
+	/*int temp_res[8][8] = { 0, };
+	if (upper == NULL)
+	{
+		for (int y = 0; y<blocksize; y++)
+		{
+			for (int x = 0; x<blocksize; x++)
+			{
+				err_temp[y][x] = (int)current[y][x] - 128;
+				SAE += abs(err_temp[y][x]);
+				temp_res[y][x] = (int)current[y][x] - 128;
+			}
+		}
+	}
+	else
+	{
+		for (int y = 0; y<blocksize; y++)
+		{
+			for (int x = 0; x<blocksize; x++)
+			{
+				err_temp[y][x] = (int)current[y][x] - (int)upper[blocksize - 1][x];
+				SAE += abs(err_temp[y][x]);
+				temp_res[y][x] = (int)current[y][x] - (int)upper[blocksize - 1][x];
+			}
+		}
+	}*/
+
 
 	SAE = SAE_SIMD;
 #else
@@ -526,7 +552,7 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 		{
 			for(int x=0; x<blocksize; x++)
 			{
-				err_temp[y][x] = (int)(current[y][x] - upper[blocksize-1][x]);
+				err_temp[y][x] = (int)(current[y][x] - (int)upper[blocksize-1][x]);
 				SAE += abs(err_temp[y][x]);
 			}
 		}
@@ -648,9 +674,35 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 	}
 
 	for (int i = 0; i < 32; i++)
-		SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
+		SAE_SIMD += (int)resblck[0].m256i_u8[i] + (int)resblck[1].m256i_u8[i];
 
-	SAE = SAE_SIMD;		
+	/*int temp_res[8][8] = { 0, };
+	if (left == NULL)
+	{
+		for (int y = 0; y<blocksize; y++)
+		{
+			for (int x = 0; x<blocksize; x++)
+			{
+				err_temp[y][x] = (int)current[y][x] - 128;
+				SAE += abs(err_temp[y][x]);
+				temp_res[y][x] = (int)current[y][x] - 128;
+			}
+		}
+	}
+	else
+	{
+		for (int y = 0; y<blocksize; y++)
+		{
+			for (int x = 0; x<blocksize; x++)
+			{
+				err_temp[y][x] = (int)current[y][x] - (int)left[y][blocksize - 1];
+				SAE += abs(err_temp[y][x]);
+				temp_res[y][x] = (int)current[y][x] - (int)left[y][blocksize - 1];
+			}
+		}
+	}*/
+
+	SAE = SAE_SIMD;
 #else
 	if (left == NULL)
 	{
@@ -669,14 +721,12 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 		{
 			for (int x = 0; x<blocksize; x++)
 			{
-				err_temp[y][x] = current[y][x] - left[y][blocksize - 1];
+				err_temp[y][x] = (int)current[y][x] - (int)left[y][blocksize - 1];
 				SAE += abs(err_temp[y][x]);
 			}
 		}
 	}
 #endif
-	
-
 	//fprintf(gfp, "%d\n", SAE);
 	return SAE;
 }
@@ -781,7 +831,20 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	}
 
 	for (int i = 0; i < 32; i++)
-		SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
+		SAE_SIMD += (int)resblck[0].m256i_u8[i] + (int)resblck[1].m256i_u8[i];
+
+
+	/*int temp_res[8][8] = { 0, };
+	for (int y = 0; y<blocksize; y++)
+	{
+		for (int x = 0; x<blocksize; x++)
+		{
+			err_temp[y][x] = (int)current[y][x] - predVal;
+			SAE += abs(err_temp[y][x]);
+			temp_res[y][x] = (int)current[y][x] - predVal;
+		}
+	}*/
+
 
 	SAE = SAE_SIMD;
 
