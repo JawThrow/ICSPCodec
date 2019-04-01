@@ -486,13 +486,13 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 		subblck = _mm256_sub_epi16(crntblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
 		_mm256_storeu_si256(tempblck, absblck);
-		_mm256_storeu_si256((__m256i*)errtemp + (2 * y), subblck);
+		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y)), subblck);
 
 		crntblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
 		subblck = _mm256_sub_epi16(crntblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
 		_mm256_storeu_si256(tempblck +1, absblck);
-		_mm256_storeu_si256((__m256i*)errtemp + (2 * y + 1), subblck);
+		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y + 2)), subblck);
 		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
 	}
 
@@ -654,14 +654,14 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 		subblck = _mm256_sub_epi16(currentblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
 		_mm256_storeu_si256(tempblck, absblck);
-		_mm256_storeu_si256((__m256i*)(errtemp + (2 * y)), subblck);
+		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y)), subblck);
 
 		predictionRow = _mm256_set_m128i(PredMixed[2 * y + 1].blck128[1], PredMixed[2 * y + 1].blck128[0]);
 		currentblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
 		subblck = _mm256_sub_epi16(currentblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
 		_mm256_storeu_si256(tempblck + 1, absblck);
-		_mm256_storeu_si256((__m256i*)(errtemp + (2 * y + 1)), subblck);
+		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y + 2)), subblck);
 		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
 	}
 
@@ -670,38 +670,17 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 	for (int i = 0; i < blocksize; i++)
 	{
 		temp = _mm256_cvtepi16_epi32(*(__m128i*)errtemp[i]);
-		memcpy(err_temp[i], &temp, sizeof(int)*blocksize);
+		memcpy(err_temp[i], &temp, sizeof(int)*blocksize);				
+
 	}
+
+
 
 	for (int i = 0; i < 32; i++)
 		SAE_SIMD += (int)resblck[0].m256i_u8[i] + (int)resblck[1].m256i_u8[i];
 
-	/*int temp_res[8][8] = { 0, };
-	if (left == NULL)
-	{
-		for (int y = 0; y<blocksize; y++)
-		{
-			for (int x = 0; x<blocksize; x++)
-			{
-				err_temp[y][x] = (int)current[y][x] - 128;
-				SAE += abs(err_temp[y][x]);
-				temp_res[y][x] = (int)current[y][x] - 128;
-			}
-		}
-	}
-	else
-	{
-		for (int y = 0; y<blocksize; y++)
-		{
-			for (int x = 0; x<blocksize; x++)
-			{
-				err_temp[y][x] = (int)current[y][x] - (int)left[y][blocksize - 1];
-				SAE += abs(err_temp[y][x]);
-				temp_res[y][x] = (int)current[y][x] - (int)left[y][blocksize - 1];
-			}
-		}
-	}*/
-
+	
+	
 	SAE = SAE_SIMD;
 #else
 	if (left == NULL)
@@ -812,13 +791,13 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 		subblck = _mm256_sub_epi16(crntblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
 		_mm256_storeu_si256(tempblck, absblck);
-		_mm256_storeu_si256((__m256i*)errtemp + (2 * y), subblck);
+		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y)), subblck);
 
 		crntblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
 		subblck = _mm256_sub_epi16(crntblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
 		_mm256_storeu_si256(tempblck + 1, absblck);
-		_mm256_storeu_si256((__m256i*)errtemp + (2 * y + 1), subblck);
+		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y + 2)), subblck);
 		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
 	}
 
