@@ -277,12 +277,6 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			for(int numOfblck8=0; numOfblck8<nblck8; numOfblck8++)
 			{
 				DPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
-
-				/*if(numOfFrm<5)
-					for (int i = 0; i < 8; i++)
-						fprintf(fp, "%d\n", bd.intraErrblck[numOfblck8]->block[3][i]);*/
-
-
 				DCT_block(bd, numOfblck8, blocksize2, INTRA);
 				DPCM_DC_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth, INTRA);
 				Quantization_block(bd, numOfblck8, blocksize2, QstepDC, QstepAC, INTRA);
@@ -421,43 +415,6 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	int SAE=0;
 
 #if SIMD
-	//int SAE_SIMD = 0;
-	//__m256i crntblck;
-	//__m256i predictionRow;	
-	//__m256i tempblck = _mm256_setzero_si256();;
-	//__m256i resblck[2];
-
-	//if(upper==NULL)
-	//{
-	//	predictionRow = _mm256_set1_epi8(128);				
-	//}
-	//else	
-	//{
-	//	// awesome!
-	//	predictionRow = _mm256_set1_epi64x(*(__int64*)upper[blocksize - 1]);
-	//}
-	//
-	//unsigned char errtemp[8][8];
-	//for (int y = 0; y< 2 ; y++)
-	//{
-	//	crntblck = _mm256_loadu_si256((__m256i*)current[y*4]);
-	//	tempblck = _mm256_sub_epi8(crntblck, predictionRow);
-	//	_mm256_store_si256(((__m256i*)errtemp) + y, tempblck);
-	//	tempblck = _mm256_abs_epi8(tempblck);
-	//	_mm256_storeu_si256(resblck + y, tempblck);
-	//}
-
-	//__m256i temp;
-	//for (int i = 0; i < 8; i++)
-	//{
-	//	temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[i]);
-	//	memcpy(err_temp[i], &temp, sizeof(int) * 8);
-	//}
-
-	//for (int i = 0; i < 32; i++)
-	//	SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
-
-	//SAE = SAE_SIMD;
 	
 	int SAE_SIMD = 0;
 	__m256i crntblck;
@@ -506,33 +463,6 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	for (int i = 0; i < 32; i++)
 		SAE_SIMD += (int)resblck[0].m256i_u8[i] + (int)resblck[1].m256i_u8[i];
 
-	/*int temp_res[8][8] = { 0, };
-	if (upper == NULL)
-	{
-		for (int y = 0; y<blocksize; y++)
-		{
-			for (int x = 0; x<blocksize; x++)
-			{
-				err_temp[y][x] = (int)current[y][x] - 128;
-				SAE += abs(err_temp[y][x]);
-				temp_res[y][x] = (int)current[y][x] - 128;
-			}
-		}
-	}
-	else
-	{
-		for (int y = 0; y<blocksize; y++)
-		{
-			for (int x = 0; x<blocksize; x++)
-			{
-				err_temp[y][x] = (int)current[y][x] - (int)upper[blocksize - 1][x];
-				SAE += abs(err_temp[y][x]);
-				temp_res[y][x] = (int)current[y][x] - (int)upper[blocksize - 1][x];
-			}
-		}
-	}*/
-
-
 	SAE = SAE_SIMD;
 #else
 	if(upper==NULL)
@@ -566,62 +496,6 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 {
 	int SAE = 0;
 #if SIMD
-	//int SAE_SIMD = 0;
-	//
-	//__m256i predictionRow;
-	//__m256i currentblck;
-	//__m256i tempblck;
-	//__m256i resblck[2];
-
-
-	//if (left == NULL)
-	//{
-	//	predictionRow = _mm256_set1_epi8(128);
-	//}
-	//else
-	//{
-	//	unsigned char *predictionRowTemp = (unsigned char*)malloc(sizeof(unsigned char)*blocksize);
-	//	for (int i = 0; i < blocksize; i++)
-	//		predictionRowTemp[i] = left[i][blocksize - 1];
-
-	//	predictionRow = _mm256_set1_epi64x(*(__int64*)predictionRowTemp);
-	//	free(predictionRowTemp); // malloc free 겁나많이할텐데?
-	//}
-
-
-	//unsigned char errtemp[8][8];
-	//for (int y = 0; y < 2; y++)
-	//{
-	//	currentblck = _mm256_loadu_si256((__m256i*)current[y * 4]);
-	//	tempblck = _mm256_subs_epi8(currentblck, predictionRow);
-	//	_mm256_storeu_si256(((__m256i*)errtemp)+y, tempblck);
-	//	tempblck = _mm256_abs_epi8(tempblck);
-	//	_mm256_store_si256(resblck+y, tempblck);
-	//}
-	//
-	//__m256i temp;
-	//for (int i = 0; i < blocksize; i++)
-	//{
-	//	temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[i]);
-	//	memcpy(err_temp[i], &temp, sizeof(int) * 8);
-	//}
-
-	//for (int i = 0; i < 32; i++)
-	//	SAE_SIMD += resblck[0].m256i_u8[i] + resblck[1].m256i_u8[i];
-
-	//__m128i currentRow;
-	//__m128i predictionRow128;
-	//__m128i tempRow[8];
-	//for (int y = 0; y < blocksize; y++)
-	//{
-	//	predictionRow128 = _mm_set1_epi8(left[y][blocksize - 1]);
-	//	currentRow = _mm_loadl_epi64((__m128i*)current[y]);
-	//	tempRow[y] = _mm_subs_epu8(currentRow, predictionRow128);
-	//}
-
-	//
-	//SAE = SAE_SIMD;
-
 	int SAE_SIMD = 0;
 	
 	__m256i predictionRow;
@@ -739,39 +613,6 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	predVal = (predValLeft + predValUpper) / (double)(blocksize + blocksize);
 
 #if SIMD
-	/*int SAE_SIMD = 0;
-	__m256i predVal256;
-	predVal256 = _mm256_set1_epi8(predVal);
-	
-	__m256i crntblck;
-	__m256i tempblck;
-	__m256i resblck[2];
-
-	unsigned char errtemp[8][8];
-	for (int y = 0; y < 2; y++)
-	{
-		crntblck = _mm256_loadu_si256((__m256i*)current[y*4]);
-		tempblck = _mm256_sub_epi8(crntblck, predVal256);
-		
-		_mm256_store_si256(((__m256i*)errtemp) + y, tempblck);
-		tempblck = _mm256_abs_epi8(tempblck);		
-		_mm256_storeu_si256(resblck + y, tempblck);
-	}
-
-	
-	for (int y = 0; y < 32; y++)
-		SAE_SIMD += resblck[0].m256i_u8[y] + resblck[1].m256i_u8[y];
-
-	__m256i temp;
-	for (int y = 0; y < 8; y++)
-	{
-		temp = _mm256_cvtepi8_epi32(*(__m128i*)errtemp[y]);
-		memcpy(err_temp[y], &temp, sizeof(int) * 8);
-	}
-
-	SAE = SAE_SIMD;*/
-
-
 	int SAE_SIMD = 0;
 	__m256i predictionRow;
 	__m256i crntblck;
@@ -813,21 +654,7 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 		SAE_SIMD += (int)resblck[0].m256i_u8[i] + (int)resblck[1].m256i_u8[i];
 
 
-	/*int temp_res[8][8] = { 0, };
-	for (int y = 0; y<blocksize; y++)
-	{
-		for (int x = 0; x<blocksize; x++)
-		{
-			err_temp[y][x] = (int)current[y][x] - predVal;
-			SAE += abs(err_temp[y][x]);
-			temp_res[y][x] = (int)current[y][x] - predVal;
-		}
-	}*/
-
-
 	SAE = SAE_SIMD;
-
-
 #else	
 	for (int y = 0; y<blocksize; y++)
 	{
@@ -2780,70 +2607,41 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 			DCTblck->block[y][x] = temp.block[y][x] = 0;
 			
 #if SIMD
-	/*Block8f Errblckf;
-	Block8f Errblckft;
-	float  SIMDResf = 0;
-	__m256 ErrRow;
-	__m256 CosRow;
-	__m256 ResRow;
-	Block8d SIMDTempBlck;
-
-	for (int y = 0; y < blocksize; y++)
-		for (int x = 0; x < blocksize; x++)
-			Errblckf.block[y][x] = Errblck->block[y][x];
+	// double type 시도 필요
+	__m256 predictionRows[8];
+	__m256 errRows[8];
+	__m256 tempRows[8];
+	for (int i = 0; i < 8; i++)
+		predictionRows[i] = _mm256_loadu_ps(costable[i]);
 	
-	for (int v = 0; v < blocksize; v++)
-	{
-		ErrRow = _mm256_load_ps(Errblckf.block[v]);
-		for (int u = 0; u < blocksize; u++)
-		{
-			CosRow = _mm256_load_ps(costable[u]);
-			ResRow = _mm256_mul_ps(ErrRow, CosRow);
-			for (int i = 0; i < blocksize; i++)
-				SIMDResf += ResRow.m256_f32[i];
-			SIMDTempBlck.block[v][u] = SIMDResf;
-			SIMDResf = 0.f;
-		}
+	// 어째 연산량이 더 많아진 것 같다...
+	// 실제로 시간을 측정해서 확인 필요
+	float temp2[8][8] = { 0.f, };
+	for (int u = 0; u < 8; u++)
+	{		
+		for(int j=0; j<blocksize; j++)
+			errRows[j] = _mm256_cvtepi32_ps(_mm256_loadu_si256((__m256i*)Errblck->block[u]));
+
+		for (int j = 0; j < 8; j++)
+			tempRows[j] = _mm256_mul_ps(errRows[j], predictionRows[j]);
+
+		for (int j = 0; j < blocksize; j++)
+			for (int k = 0; k < blocksize; k++)
+				temp2[u][j] += tempRows[j].m256_f32[k];
+		
 	}
-
-	for (int y = 0; y < blocksize; y++)
-		for (int x = 0; x < blocksize; x++)
-			Errblckft.block[y][x] = SIMDTempBlck.block[x][y];
-
-	for(int u = 0; u < blocksize; u++)
+	
+	for (int u = 0; u < 8; u++)
 	{
-		ErrRow = _mm256_load_ps(Errblckft.block[u]);
-		for (int v = 0; v < blocksize; v++)
-		{
-			CosRow = _mm256_load_ps(costable[v]);
-			ResRow = _mm256_mul_ps(ErrRow, CosRow);
-			for (int i = 0; i < blocksize; i++)
-				SIMDResf += ResRow.m256_f32[i];
-			DCTblck->block[v][u] = SIMDResf;
-			SIMDResf = 0.f;
-		}
-	}*/
+		for (int j = 0; j < 8; j++)
+			errRows[j] = _mm256_setr_ps(temp2[0][u], temp2[1][u], temp2[2][u], temp2[3][u], temp2[4][u], temp2[5][u], temp2[6][u], temp2[7][u]);
 
-	for (int v = 0; v<blocksize; v++)
-	{
-		for (int u = 0; u<blocksize; u++)
-		{
-			for (int x = 0; x<blocksize; x++)
-			{
-				temp.block[v][u] += (double)Errblck->block[v][x] * costable[u][x];
-			}
-		}
-	}
+		for (int j = 0; j < 8; j++)
+			tempRows[j] = _mm256_mul_ps(errRows[j], predictionRows[j]);
 
-	for (int u = 0; u<blocksize; u++)
-	{
-		for (int v = 0; v<blocksize; v++)
-		{
-			for (int y = 0; y<blocksize; y++)
-			{
-				DCTblck->block[v][u] += temp.block[y][u] * costable[v][y];
-			}
-		}
+		for (int j = 0; j < blocksize; j++)
+			for (int k = 0; k < blocksize; k++)
+				DCTblck->block[j][u] += tempRows[j].m256_f32[k];
 	}
 #else
 	for(int v=0; v<blocksize; v++)
