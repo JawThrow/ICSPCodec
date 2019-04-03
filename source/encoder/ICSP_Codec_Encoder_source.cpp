@@ -2024,7 +2024,6 @@ void motionEstimation(FrameData& cntFrm, FrameData& prevFrm)
 		while(cnt<nSearch) // 전체 회수 64번 이더라; 수정될 가능성이 크다
 		{	
 			SAD = 0;
-			// 0,0 일때 두번도는거 수정해야됨
 			if(!flag) // x변화
 			{
 				if(xflag<=0) x0 += xcnt;
@@ -2180,7 +2179,7 @@ void getPaddingImage(unsigned char* src, unsigned char* dst, int padWidth, int p
 		}
 	}
 }
-void get16block(unsigned char* img, unsigned char *dst[16], int y0, int x0, int width, int blocksize)  // 블록의 크기를 16로 고정 ㅜㅜ
+void get16block(unsigned char* img, unsigned char *dst[16], int y0, int x0, int width, int blocksize)  
 {
 	// padimg size - width: 382 height: 320
 	for(int y=0; y<blocksize; y++)
@@ -3197,7 +3196,6 @@ void entropyCoding(int* reordblck, int length)
 
 
 	// 다시 돌아가면서 비트를 bitchar에 채워 넣으면 되겠다
-
 	int idx=0;
 	int bitcnt=0;
 	int c=0;
