@@ -5,7 +5,7 @@
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 
-#define SIMD true
+#define SIMD false
 
 
 FILE* gfp;
@@ -217,20 +217,18 @@ int splitBlocks(IcspCodec &icC, int blocksize1, int blocksize2)
 
 /* intra prediction function */
 int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
-{	
+{
+#if SIMD
+	gfp = fopen("Intra_MODE_Scalar.txt", "wt");
+#else
+	gfp = fopen("Intra_MODE_Scalar.txt", "wt");
+#endif
 	int totalblck = frames->nblocks16;
 	int nblck8 = frames->nblocks8;
 	int blocksize1 = frames->blocks->blocksize1;
 	int blocksize2 = frames->blocks->blocksize2;
 	int splitWidth = frames->splitWidth;
 	int splitHeight = frames->splitHeight;
-
-#if SIMD
-	gfp = fopen("Intra_MODE_Vector.txt", "wt");
-#else
-	gfp = fopen("Intra_MODE_Scalar.txt", "wt");
-#endif
-
 
 	for(int numOfFrm=0; numOfFrm<nframes; numOfFrm++)
 	{
@@ -1906,6 +1904,11 @@ void intraImgReconstruct(FrameData &frm)
 /* inter prediction function */
 int interPrediction(FrameData& cntFrm, FrameData& prevFrm, int QstepDC, int QstepAC)
 {
+#if SIMD
+	gfp = fopen("Inter_getSAD_vector.txt", "wt");
+#else
+	gfp = fopen("Inter_getSAD_scalar.txt", "wt");
+#endif
 	int totalblck = cntFrm.nblocks16;
 	int nblock8 = cntFrm.nblocks8;
 	int blocksize1 = cntFrm.blocks->blocksize1;
@@ -1973,6 +1976,7 @@ int interPrediction(FrameData& cntFrm, FrameData& prevFrm, int QstepDC, int Qste
 		
 	interYReconstruct(cntFrm, prevFrm);
 	interCbCr(cntFrm, prevFrm, QstepDC, QstepAC);
+	fclose(gfp);
 
 	for(int nblck=0; nblck<totalblck; nblck++)
 	{
@@ -2193,7 +2197,43 @@ void get16block(unsigned char* img, unsigned char *dst[16], int y0, int x0, int 
 int getSAD(unsigned char currentblck[][16], unsigned char *spiralblck[16], int blocksize)
 {
 	int SAD = 0;
+#if SIMD
+	int SAD_SIMD = 0;
+	__m256i spiralRow;
+	__m256i crntRow;
+	__m256i subRow;
+	__m256i resRows[8];
+	__m256i tempRows[2];
+	__mmMIXED mixedRef;
+	__mmMIXED mixedSrc;
 
+	int nInterLoop = blocksize / 2; // 8¹ø
+	for (int i = 0; i < nInterLoop; i++)
+	{
+		mixedSrc.blck256 = _mm256_loadu_si256((__m256i*)currentblck[i*2]);
+		mixedRef.blck256 = _mm256_loadu_si256((__m256i*)spiralblck[i*2]);
+
+		crntRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[0]);
+		spiralRow = _mm256_cvtepu8_epi16(mixedRef.blck128[0]);
+		subRow = _mm256_sub_epi16(crntRow, spiralRow);
+		subRow = _mm256_abs_epi16(subRow);
+		_mm256_storeu_si256(tempRows, subRow);
+
+		crntRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[1]);
+		spiralRow = _mm256_cvtepu8_epi16(mixedRef.blck128[1]);
+		subRow = _mm256_sub_epi16(crntRow, spiralRow);
+		subRow = _mm256_abs_epi16(subRow);
+		_mm256_storeu_si256(tempRows + 1, subRow);
+		resRows[i] = _mm256_packs_epi16(tempRows[0], tempRows[1]);		
+	}
+
+	for(int i = 0; i < nInterLoop; i++)
+		for (int j = 0; j < 32; j++)
+			SAD_SIMD = (int)resRows[i].m256i_u8[i];
+
+	SAD = SAD_SIMD;
+#else
+	// 16 x 16
 	for(int y=0; y<blocksize; y++)
 	{
 		for(int x=0; x<blocksize; x++)
@@ -2201,7 +2241,8 @@ int getSAD(unsigned char currentblck[][16], unsigned char *spiralblck[16], int b
 			SAD += abs((int)(currentblck[y][x] - spiralblck[y][x]));
 		}
 	}
-
+#endif
+	fprintf(gfp, "%d\n", SAD);
 	return SAD;
 }
 void interYReconstruct(FrameData& cntFrm, FrameData& prevFrm)
