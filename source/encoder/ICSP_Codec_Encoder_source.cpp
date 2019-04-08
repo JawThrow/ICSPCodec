@@ -5,7 +5,7 @@
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 
-#define SIMD false
+#define SIMD true
 
 
 FILE* gfp;
