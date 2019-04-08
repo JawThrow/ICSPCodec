@@ -2004,8 +2004,9 @@ void motionEstimation(FrameData& cntFrm, FrameData& prevFrm)
 	getPaddingImage(prevFrm.reconstructedY, paddingImage, padImgWidth, padlen, width, height);
 
 
-	unsigned char** spiralblck = (unsigned char**)malloc(sizeof(unsigned char*)*blocksize1);
-	for(int i=0; i<blocksize1; i++)	spiralblck[i] = (unsigned char*)malloc(sizeof(unsigned char)*blocksize1);
+	/*unsigned char** spiralblck = (unsigned char**)malloc(sizeof(unsigned char*)*blocksize1);
+	for(int i=0; i<blocksize1; i++)	spiralblck[i] = (unsigned char*)malloc(sizeof(unsigned char)*blocksize1);*/
+	unsigned char spiralblck[16][16] = { 0, };
 
 	int y0=0, x0=0, cntX0=0, cntY0=0, tempX=0, tempY=0;
 	int flag=0, xflag=1, yflag=-1;
@@ -2064,9 +2065,9 @@ void motionEstimation(FrameData& cntFrm, FrameData& prevFrm)
 
 	}
 
-	for(int i=0; i<blocksize1; i++)
+	/*for(int i=0; i<blocksize1; i++)
 		free(spiralblck[i]);
-	free(spiralblck);
+	free(spiralblck);*/
 
 	free(paddingImage);	
 }
@@ -2084,8 +2085,9 @@ void motionCompensation(FrameData& cntFrm, FrameData& prevFrm)
 	int padImgHeight = height + padlen * 2;	//320
 
 
-	unsigned char** predblck = (unsigned char**)malloc(sizeof(unsigned char*)*blocksize1);
-	for(int i=0; i<blocksize1; i++) predblck[i] = (unsigned char *)malloc(sizeof(unsigned char)*blocksize1);
+	/*unsigned char** predblck = (unsigned char**)malloc(sizeof(unsigned char*)*blocksize1);
+	for(int i=0; i<blocksize1; i++) predblck[i] = (unsigned char *)malloc(sizeof(unsigned char)*blocksize1);*/
+	unsigned char predblck[16][16] = { 0, };
 
 	// 패딩 이미지 생성
 	unsigned char* paddingImage = (unsigned char*) calloc(sizeof(unsigned char), padImgWidth*padImgHeight);
@@ -2133,9 +2135,9 @@ void motionCompensation(FrameData& cntFrm, FrameData& prevFrm)
 
 	for(int nblck=0; nblck<totalblck; nblck++)
 		free(cntFrm.blocks[nblck].originalblck16);
-	for(int i=0; i<blocksize1; i++) 
+	/*for(int i=0; i<blocksize1; i++) 
 		free(predblck[i]);
-	free(predblck);
+	free(predblck);*/
 	free(paddingImage);
 
 	// 요기서 restructedY를 free하면 되지만 이후에 checkResultFrames에서 결과를 확인하기위해 restructedY를 참조하므로 free는 나중으로 미루자
@@ -2183,7 +2185,7 @@ void getPaddingImage(unsigned char* src, unsigned char* dst, int padWidth, int p
 		}
 	}
 }
-void get16block(unsigned char* img, unsigned char *dst[16], int y0, int x0, int width, int blocksize)  
+void get16block(unsigned char* img, unsigned char dst[][16], int y0, int x0, int width, int blocksize)  
 {
 	// padimg size - width: 382 height: 320
 	for(int y=0; y<blocksize; y++)
@@ -2194,7 +2196,7 @@ void get16block(unsigned char* img, unsigned char *dst[16], int y0, int x0, int 
 		}
 	}
 }
-int getSAD(unsigned char currentblck[][16], unsigned char *spiralblck[16], int blocksize)
+int getSAD(unsigned char currentblck[][16], unsigned char spiralblck[][16], int blocksize)
 {
 	int SAD = 0;
 #if SIMD
@@ -2202,7 +2204,7 @@ int getSAD(unsigned char currentblck[][16], unsigned char *spiralblck[16], int b
 	__m256i spiralRow;
 	__m256i crntRow;
 	__m256i subRow;
-	__m256i resRows[8];
+	__m256i resRows[16];
 	__m256i tempRows[2];
 	__mmMIXED mixedRef;
 	__mmMIXED mixedSrc;
@@ -2217,28 +2219,47 @@ int getSAD(unsigned char currentblck[][16], unsigned char *spiralblck[16], int b
 		spiralRow = _mm256_cvtepu8_epi16(mixedRef.blck128[0]);
 		subRow = _mm256_sub_epi16(crntRow, spiralRow);
 		subRow = _mm256_abs_epi16(subRow);
-		_mm256_storeu_si256(tempRows, subRow);
+		_mm256_storeu_si256(&resRows[i * 2], subRow);
 
 		crntRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[1]);
 		spiralRow = _mm256_cvtepu8_epi16(mixedRef.blck128[1]);
 		subRow = _mm256_sub_epi16(crntRow, spiralRow);
 		subRow = _mm256_abs_epi16(subRow);
-		_mm256_storeu_si256(tempRows + 1, subRow);
-		resRows[i] = _mm256_packs_epi16(tempRows[0], tempRows[1]);		
+		_mm256_storeu_si256(&resRows[i * 2 + 1], subRow);
 	}
 
-	for(int i = 0; i < nInterLoop; i++)
+	/*for(int i = 0; i < nInterLoop; i++)
 		for (int j = 0; j < 32; j++)
-			SAD_SIMD = (int)resRows[i].m256i_u8[i];
+			SAD_SIMD = (int)resRows[i].m256i_u8[i];*/
+
+	__m256i SADRows[8];
+	for (int i = 0; i < nInterLoop; i++)
+		SADRows[i] = _mm256_hadd_epi16(resRows[i * 2], resRows[i * 2 + 1]);
+
+	for (int i = 0; i < nInterLoop; i++)
+		for (int j = 0; j < blocksize; j++)
+			SAD_SIMD += SADRows[i].m256i_u16[j];
 
 	SAD = SAD_SIMD;
+
+
+	short temp[16][16] = { 0, };
+	for (int y = 0; y<blocksize; y++)
+	{
+		for (int x = 0; x<blocksize; x++)
+		{
+			temp[y][x] = abs((int)currentblck[y][x] - (int)spiralblck[y][x]);
+		}
+	}
+
+
 #else
 	// 16 x 16
 	for(int y=0; y<blocksize; y++)
 	{
 		for(int x=0; x<blocksize; x++)
 		{
-			SAD += abs((int)(currentblck[y][x] - spiralblck[y][x]));
+			SAD += abs((int)currentblck[y][x] - (int)spiralblck[y][x]);
 		}
 	}
 #endif
@@ -2465,8 +2486,9 @@ void CmotionCompensation(FrameData& cntFrm, FrameData& prevFrm, int type)
 		getPaddingImage(prevFrm.reconstructedCr, paddingImage, padImgWidth, padlen, width, height); //restruct된 이전 cb, cr프레임
 
 	// create prediction block
-	unsigned char** predblck = (unsigned char**)malloc(sizeof(unsigned char*)*blocksize);
-	for(int i=0; i<blocksize; i++) predblck[i] = (unsigned char *)malloc(sizeof(unsigned char)*blocksize);
+	/*unsigned char** predblck = (unsigned char**)malloc(sizeof(unsigned char*)*blocksize);
+	for(int i=0; i<blocksize; i++) predblck[i] = (unsigned char *)malloc(sizeof(unsigned char)*blocksize);*/
+	unsigned char predblck[16][16] = { 0, };
 
 	CBlockData *cbd = NULL;
  	if(type == CB)
@@ -2493,8 +2515,8 @@ void CmotionCompensation(FrameData& cntFrm, FrameData& prevFrm, int type)
 		}		
 	}	
 
-	for(int i=0; i<blocksize; i++) free(predblck[i]);
-	free(predblck);
+	/*for(int i=0; i<blocksize; i++) free(predblck[i]);
+	free(predblck);*/
 	free(paddingImage);
 	for(int i=0; i<totalblck; i++)
 		free(cbd[i].originalblck8);
