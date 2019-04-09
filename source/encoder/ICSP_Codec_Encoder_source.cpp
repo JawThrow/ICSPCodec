@@ -5,7 +5,7 @@
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 
-#define SIMD true
+#define SIMD false
 
 
 FILE* gfp;
@@ -219,7 +219,7 @@ int splitBlocks(IcspCodec &icC, int blocksize1, int blocksize2)
 int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 {
 #if SIMD
-	gfp = fopen("Intra_MODE_Scalar.txt", "wt");
+	gfp = fopen("Intra_MODE_Vector.txt", "wt");
 #else
 	gfp = fopen("Intra_MODE_Scalar.txt", "wt");
 #endif
@@ -420,7 +420,7 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 	__m256i subblck = _mm256_setzero_si256();
 	__m256i absblck = _mm256_setzero_si256();
 	__m256i tempblck[2];
-	__m256i resblck[2];
+	__m256i resblck[4];
 	__mmMIXED _mixed;
 	short errtemp[8][8];
 
@@ -440,15 +440,14 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 		crntblck = _mm256_cvtepu8_epi16(_mixed.blck128[0]);
 		subblck = _mm256_sub_epi16(crntblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
-		_mm256_storeu_si256(tempblck, absblck);
+		_mm256_storeu_si256(&resblck[y * 2], absblck);
 		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y)), subblck);
 
 		crntblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
 		subblck = _mm256_sub_epi16(crntblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
-		_mm256_storeu_si256(tempblck +1, absblck);
+		_mm256_storeu_si256(&resblck[y * 2 + 1], absblck);
 		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y + 2)), subblck);
-		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
 	}
 
 	__m256i temp;
@@ -458,8 +457,9 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 		memcpy(err_temp[i], &temp, sizeof(int) * 8);
 	}
 
-	for (int i = 0; i < 32; i++)
-		SAE_SIMD += (int)resblck[0].m256i_u8[i] + (int)resblck[1].m256i_u8[i];
+	for (int i = 0; i < 2; i++)
+		for (int j = 0; j < 16; j++)
+			SAE_SIMD += resblck[i * 2].m256i_i16[j] + resblck[i * 2 + 1].m256i_i16[j];
 
 	SAE = SAE_SIMD;
 #else
@@ -500,8 +500,7 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 	__m256i currentblck;
 	__m256i subblck = _mm256_setzero_si256();
 	__m256i absblck = _mm256_setzero_si256();
-	__m256i tempblck[2];
-	__m256i resblck[2];	
+	__m256i resblck[4];
 	__mmMIXED _mixed;
 	__mmMIXED PredMixed[4];
 	short errtemp[8][8] = { 0, };
@@ -525,32 +524,27 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 		currentblck = _mm256_cvtepu8_epi16(_mixed.blck128[0]);		
 		subblck = _mm256_sub_epi16(currentblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
-		_mm256_storeu_si256(tempblck, absblck);
+		_mm256_storeu_si256(&resblck[y * 2], absblck);
 		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y)), subblck);
 
 		predictionRow = _mm256_set_m128i(PredMixed[2 * y + 1].blck128[1], PredMixed[2 * y + 1].blck128[0]);
 		currentblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
 		subblck = _mm256_sub_epi16(currentblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
-		_mm256_storeu_si256(tempblck + 1, absblck);
-		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y + 2)), subblck);
-		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
+		_mm256_storeu_si256(&resblck[y * 2 + 1], absblck);
+		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y + 2)), subblck);		
 	}
-
 	
 	__m256i temp;
 	for (int i = 0; i < blocksize; i++)
 	{
 		temp = _mm256_cvtepi16_epi32(*(__m128i*)errtemp[i]);
 		memcpy(err_temp[i], &temp, sizeof(int)*blocksize);				
-
 	}
-
-
-
-	for (int i = 0; i < 32; i++)
-		SAE_SIMD += (int)resblck[0].m256i_u8[i] + (int)resblck[1].m256i_u8[i];
-
+		
+	for (int i = 0; i < 2; i++)
+		for (int j = 0; j < 16; j++)
+			SAE_SIMD += resblck[i * 2].m256i_i16[j] + resblck[i * 2 + 1].m256i_i16[j];
 	
 	
 	SAE = SAE_SIMD;
@@ -616,8 +610,7 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	__m256i crntblck;
 	__m256i subblck = _mm256_setzero_si256();
 	__m256i absblck = _mm256_setzero_si256();
-	__m256i tempblck[2];
-	__m256i resblck[2];
+	__m256i resblck[4];
 	__mmMIXED _mixed;
 	short errtemp[8][8];
 
@@ -629,15 +622,14 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 		crntblck = _mm256_cvtepu8_epi16(_mixed.blck128[0]);
 		subblck = _mm256_sub_epi16(crntblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
-		_mm256_storeu_si256(tempblck, absblck);
+		_mm256_storeu_si256(&resblck[y * 2], absblck);		
 		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y)), subblck);
 
 		crntblck = _mm256_cvtepu8_epi16(_mixed.blck128[1]);
 		subblck = _mm256_sub_epi16(crntblck, predictionRow);
 		absblck = _mm256_abs_epi16(subblck);
-		_mm256_storeu_si256(tempblck + 1, absblck);
+		_mm256_storeu_si256(&resblck[y * 2 + 1], absblck);
 		_mm256_storeu_si256((__m256i*)(errtemp + (4 * y + 2)), subblck);
-		resblck[y] = _mm256_packs_epi16(tempblck[0], tempblck[1]);
 	}
 
 
@@ -648,10 +640,11 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 		memcpy(err_temp[i], &temp, sizeof(int)*blocksize);
 	}
 
-	for (int i = 0; i < 32; i++)
-		SAE_SIMD += (int)resblck[0].m256i_u8[i] + (int)resblck[1].m256i_u8[i];
-
-
+	
+	for (int i = 0; i < 2; i++)
+		for (int j = 0; j < 16; j++)
+			SAE_SIMD += resblck[i * 2].m256i_i16[j] + resblck[i * 2 + 1].m256i_i16[j];
+	
 	SAE = SAE_SIMD;
 #else	
 	for (int y = 0; y<blocksize; y++)
