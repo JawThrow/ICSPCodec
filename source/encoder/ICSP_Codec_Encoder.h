@@ -219,8 +219,8 @@ void IDPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], double curre
 /* inter prediction function*/
 int interPrediction(FrameData& n_1frame, FrameData& nframe, int QstepDC, int QstepAC);
 void getPaddingImage(unsigned char* src, unsigned char* dst, int padWidth, int padlen, int width, int height);
-void get16block(unsigned char* img, unsigned char *dst[16], int y, int x, int width, int blocksize);
-int getSAD(unsigned char currentblck[][16], unsigned char *spiralblck[16], int blocksize);
+void get16block(unsigned char* img, unsigned char dst[][16], int y, int x, int width, int blocksize);
+int getSAD(unsigned char currentblck[][16], unsigned char spiralblck[][16], int blocksize);
 void motionCompensation(FrameData& cntFrm, FrameData& prevFrm);
 void motionEstimation(FrameData& cntFrm, FrameData& prevFrm);
 void interYReconstruct(FrameData& cntFrm, FrameData& prevFrm);
