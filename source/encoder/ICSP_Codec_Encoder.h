@@ -1,7 +1,9 @@
 #pragma once
 #include <iostream>
 #include <time.h>
+#include <windows.h>
 #include <immintrin.h>
+#include <iomanip>
 using namespace std;
 
 #define INTRA 0
@@ -272,6 +274,7 @@ unsigned char* DCentropy(int DCval, int& nbits);
 int ACentropy(int* reordblck, unsigned char *ACentropyResult);
 unsigned char* ACentropy(int* reordblck, int& nbits);
 unsigned char* MVentropy(MotionVector mv, int& nbitsx, int& nbitsy);
+
 
 inline void IcspCodec::init(int nframe, char* imageFname, int width, int height, int QstepDC, int QstepAC)
 {
