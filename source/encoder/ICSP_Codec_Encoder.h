@@ -196,6 +196,28 @@ public:
 	~IcspCodec(); 
 };
 
+// ARV
+class AVXRowsforVectorization
+{
+public:
+	__m256i currentRow;
+	__m256i predictionRow;
+	__m256i subRow;
+	__m256i absRow;
+	__m256i sumRow;
+	__m256i tempRows[2];
+	__m256i resRows[4];
+	__mmMIXED _mixed;
+	__mmMIXED PredMixed[4];
+
+public:
+	AVXRowsforVectorization()
+	{
+		subRow = _mm256_setzero_si256();
+		absRow = _mm256_setzero_si256();
+		sumRow = _mm256_setzero_si256();
+	}
+};
 
 /* initiation function */
 int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe, const int width, const int height);
