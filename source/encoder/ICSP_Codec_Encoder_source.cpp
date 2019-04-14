@@ -5,7 +5,7 @@
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 
-#define SIMD false
+#define SIMD true
 
 #ifdef SIMD
 #define SIMDGLOBAL true
@@ -2817,19 +2817,62 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 			DCTblck->block[y][x] = temp.block[y][x] = 0;
 			
 #if SIMD
+#if SIMDGLOBAL
+	// double type 시도 필요
+	__m256 predictionRows[8];
+	__m256 errRows[8];
+	__m256 tempRows[8];
+	__m256 sumRow = _mm256_setzero_ps();
+	for (int i = 0; i < 8; i++)
+		predictionRows[i] = _mm256_loadu_ps(costable[i]);
+
+	// 어째 연산량이 더 많아진 것 같다...
+	// 실제로 시간을 측정해서 확인 필요
+	float temp2[8][8] = { 0.f, };
+	float temp3[8][8] = { 0.f  };
+	for (int u = 0; u < blocksize; u++)
+	{
+		for (int j = 0; j<blocksize; j++)
+			errRows[j] = _mm256_cvtepi32_ps(_mm256_loadu_si256((__m256i*)Errblck->block[u]));
+
+		for (int j = 0; j < blocksize; j++)
+			tempRows[j] = _mm256_mul_ps(errRows[j], predictionRows[j]);
+		
+		for (int j = 0; j < blocksize; j++)
+			sumRow = _mm256_add_ps(sumRow, tempRows[j]);
+		
+		_mm256_storeu_ps(temp2[u], sumRow);
+		sumRow = _mm256_setzero_ps();
+	}
+
+	for (int u = 0; u < 8; u++)
+	{
+		for (int j = 0; j < blocksize; j++)
+			errRows[j] = _mm256_setr_ps(temp2[0][u], temp2[1][u], temp2[2][u], temp2[3][u], temp2[4][u], temp2[5][u], temp2[6][u], temp2[7][u]);
+
+		for (int j = 0; j < blocksize; j++)
+			tempRows[j] = _mm256_mul_ps(errRows[j], predictionRows[j]);
+
+		for (int j = 0; j < blocksize; j++)
+			sumRow = _mm256_add_ps(sumRow, tempRows[j]);
+
+		_mm256_storeu_ps((float*)DCTblck->block[u], sumRow);
+		sumRow = _mm256_setzero_ps();
+	}
+#else
 	// double type 시도 필요
 	__m256 predictionRows[8];
 	__m256 errRows[8];
 	__m256 tempRows[8];
 	for (int i = 0; i < 8; i++)
 		predictionRows[i] = _mm256_loadu_ps(costable[i]);
-	
+
 	// 어째 연산량이 더 많아진 것 같다...
 	// 실제로 시간을 측정해서 확인 필요
 	float temp2[8][8] = { 0.f, };
 	for (int u = 0; u < 8; u++)
-	{		
-		for(int j=0; j<blocksize; j++)
+	{
+		for (int j = 0; j<blocksize; j++)
 			errRows[j] = _mm256_cvtepi32_ps(_mm256_loadu_si256((__m256i*)Errblck->block[u]));
 
 		for (int j = 0; j < 8; j++)
@@ -2838,9 +2881,9 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 		for (int j = 0; j < blocksize; j++)
 			for (int k = 0; k < blocksize; k++)
 				temp2[u][j] += tempRows[j].m256_f32[k];
-		
+
 	}
-	
+
 	for (int u = 0; u < 8; u++)
 	{
 		for (int j = 0; j < 8; j++)
@@ -2853,6 +2896,8 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 			for (int k = 0; k < blocksize; k++)
 				DCTblck->block[j][u] += tempRows[j].m256_f32[k];
 	}
+#endif
+	
 #else
 	for(int v=0; v<blocksize; v++)
 	{

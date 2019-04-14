@@ -13,8 +13,8 @@ int main(void)
 	//int QPAC = atoi(argv[4]);
 	//int intraPeriod = atoi(argv[5]);
 
-	int nframes = 300;
-	char *imgfname = "akiyo_cif(352X288)_300f.yuv";
+	int nframes = 90;
+	char *imgfname = "football_cif(352X288)_90f.yuv";
 	int QPDC = 16;
 	int QPAC = 16;
 	int intraPeriod = ALL_INTRA;
