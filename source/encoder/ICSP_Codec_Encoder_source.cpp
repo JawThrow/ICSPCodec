@@ -2820,6 +2820,7 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 #if SIMDGLOBAL
 	// double type 시도 필요
 	__m256 predictionRows[8];
+	__m256 errRow;
 	__m256 errRows[8];
 	__m256 tempRows[8];
 	__m256 sumRow = _mm256_setzero_ps();
@@ -2832,11 +2833,10 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 	float temp3[8][8] = { 0.f  };
 	for (int u = 0; u < blocksize; u++)
 	{
-		for (int j = 0; j<blocksize; j++)
-			errRows[j] = _mm256_cvtepi32_ps(_mm256_loadu_si256((__m256i*)Errblck->block[u]));
+		errRow = _mm256_cvtepi32_ps(_mm256_loadu_si256((__m256i*)Errblck->block[u]));
 
 		for (int j = 0; j < blocksize; j++)
-			tempRows[j] = _mm256_mul_ps(errRows[j], predictionRows[j]);
+			tempRows[j] = _mm256_mul_ps(errRow, predictionRows[j]);
 		
 		for (int j = 0; j < blocksize; j++)
 			sumRow = _mm256_add_ps(sumRow, tempRows[j]);
@@ -2847,8 +2847,7 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 
 	for (int u = 0; u < 8; u++)
 	{
-		for (int j = 0; j < blocksize; j++)
-			errRows[j] = _mm256_setr_ps(temp2[0][u], temp2[1][u], temp2[2][u], temp2[3][u], temp2[4][u], temp2[5][u], temp2[6][u], temp2[7][u]);
+		errRow = _mm256_setr_ps(temp2[0][u], temp2[1][u], temp2[2][u], temp2[3][u], temp2[4][u], temp2[5][u], temp2[6][u], temp2[7][u]);
 
 		for (int j = 0; j < blocksize; j++)
 			tempRows[j] = _mm256_mul_ps(errRows[j], predictionRows[j]);
