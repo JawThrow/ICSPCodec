@@ -310,8 +310,12 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			
 			for(int numOfblck8=0; numOfblck8<nblck8; numOfblck8++)
 			{
+				TimeCheck::TimeCheckStart();
 				DPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
+				cout << fixed << "DPCM: " << TimeCheck::TimeCheckEnd() << endl;
+				TimeCheck::TimeCheckStart();
 				DCT_block(bd, numOfblck8, blocksize2, INTRA);
+				cout << fixed << "DCT: " << TimeCheck::TimeCheckEnd() << endl;
 				DPCM_DC_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth, INTRA);
 				Quantization_block(bd, numOfblck8, blocksize2, QstepDC, QstepAC, INTRA);
 				
@@ -322,7 +326,7 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 				IDCT_block(bd, numOfblck8, blocksize2, INTRA);
 				IDPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
 			}		
-			
+			system("pause");
 			intraCbCr(frm, cbbd, crbd, blocksize2, numOfblck16, QstepDC, QstepAC);	// 5th parameter, numOfblck16, is numOfblck8 in CbCr
 			mergeBlock(bd, blocksize2, INTRA);
 
@@ -334,7 +338,7 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			free(bd.intraInverseDCTblck);
 			free(bd.originalblck16);
 		}
-		cout << fixed << setw(5) << "TimeCheck: " << TimeCheck::TimeCheckEnd() << endl;
+		cout << fixed << "TimeCheck: " << TimeCheck::TimeCheckEnd() << endl;
 		intraImgReconstruct(frm);
 		//entropyCoding(frm, INTRA);
 
