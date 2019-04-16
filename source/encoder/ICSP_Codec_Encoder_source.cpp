@@ -264,9 +264,10 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 	int splitWidth = frames->splitWidth;
 	int splitHeight = frames->splitHeight;
 
-	TimeCheck::TimeCheckStart();
+	
 	for(int numOfFrm=0; numOfFrm<nframes; numOfFrm++)
 	{
+		TimeCheck::TimeCheckStart();
 		FrameData& frm = frames[numOfFrm];
 		for(int numOfblck16=0; numOfblck16<totalblck; numOfblck16++)
 		{
@@ -306,7 +307,7 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			cbbd.intraInverseDCTblck  = (Block8d*)malloc(sizeof(Block8d));
 			crbd.intraInverseDCTblck  = (Block8d*)malloc(sizeof(Block8d));
 			/* 할당 구간 끝 */
-
+			
 			for(int numOfblck8=0; numOfblck8<nblck8; numOfblck8++)
 			{
 				DPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
@@ -320,7 +321,8 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 				IDPCM_DC_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth, INTRA);
 				IDCT_block(bd, numOfblck8, blocksize2, INTRA);
 				IDPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
-			}			
+			}		
+			
 			intraCbCr(frm, cbbd, crbd, blocksize2, numOfblck16, QstepDC, QstepAC);	// 5th parameter, numOfblck16, is numOfblck8 in CbCr
 			mergeBlock(bd, blocksize2, INTRA);
 
@@ -332,7 +334,7 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			free(bd.intraInverseDCTblck);
 			free(bd.originalblck16);
 		}
-
+		cout << fixed << setw(5) << "TimeCheck: " << TimeCheck::TimeCheckEnd() << endl;
 		intraImgReconstruct(frm);
 		//entropyCoding(frm, INTRA);
 
@@ -348,7 +350,7 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			free(frm.Crblocks[numOfblck16].intraInverseDCTblck);
 		}
 	}
-	cout << fixed << setw(5) << "TimeCheck: " << TimeCheck::TimeCheckEnd() << endl;
+	
 	
 	fclose(gfp);
 	// restructedY는 checkResultFrames에서 사용하므로 free는 나중에 하자
@@ -451,7 +453,8 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 #if SIMDGLOBAL
 	int SAE_SIMD = 0;
 	short errtemp[8][8];
-
+	__m256i tempRow1;
+	__m256i tempRow2;
 	if (upper == NULL)
 	{
 		gARV->predictionRow = _mm256_set1_epi16(128);
@@ -2821,7 +2824,6 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 	// double type 시도 필요
 	__m256 predictionRows[8];
 	__m256 errRow;
-	__m256 errRows[8];
 	__m256 tempRows[8];
 	__m256 sumRow = _mm256_setzero_ps();
 	for (int i = 0; i < 8; i++)
@@ -2845,12 +2847,12 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 		sumRow = _mm256_setzero_ps();
 	}
 
-	for (int u = 0; u < 8; u++)
+	for (int u = 0; u < blocksize; u++)
 	{
 		errRow = _mm256_setr_ps(temp2[0][u], temp2[1][u], temp2[2][u], temp2[3][u], temp2[4][u], temp2[5][u], temp2[6][u], temp2[7][u]);
 
 		for (int j = 0; j < blocksize; j++)
-			tempRows[j] = _mm256_mul_ps(errRows[j], predictionRows[j]);
+			tempRows[j] = _mm256_mul_ps(errRow, predictionRows[j]);
 
 		for (int j = 0; j < blocksize; j++)
 			sumRow = _mm256_add_ps(sumRow, tempRows[j]);
