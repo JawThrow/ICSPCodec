@@ -207,6 +207,7 @@ public:
 	__m256i sumRow;
 	__m256i tempRows[2];
 	__m256i resRows[4];
+	__m256i zeroRow;
 	__mmMIXED _mixed;
 	__mmMIXED PredMixed[4];
 
@@ -216,6 +217,7 @@ public:
 		subRow = _mm256_setzero_si256();
 		absRow = _mm256_setzero_si256();
 		sumRow = _mm256_setzero_si256();
+		zeroRow = _mm256_setzero_si256();
 	}
 };
 
