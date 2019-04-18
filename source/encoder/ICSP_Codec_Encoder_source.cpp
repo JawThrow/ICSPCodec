@@ -314,6 +314,7 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 				DPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
 				DPCM_Time_PerFrame += TimeCheck::TimeCheckEnd();
 				DCT_block(bd, numOfblck8, blocksize2, INTRA);
+				
 				DPCM_DC_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth, INTRA);
 				Quantization_block(bd, numOfblck8, blocksize2, QstepDC, QstepAC, INTRA);
 				
@@ -335,8 +336,8 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			free(bd.intraInverseDCTblck);
 			free(bd.originalblck16);
 		}
-		DPCM_Time_PerFrame /= (totalblck * 4);
-		//fprintf(gfp, "%lf\n", DPCM_Time_PerFrame);
+		DPCM_Time_PerFrame /= (totalblck * nblck8);
+		fprintf(gfp, "%lf\n", DPCM_Time_PerFrame);
 		DPCM_Time_PerFrame = 0;
 		
 		//cout << fixed << "TimeCheck: " << TimeCheck::TimeCheckEnd() << endl;
@@ -2835,13 +2836,13 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 		{
 			sumRow = _mm256_hadd_ps(tempRows[j], tempRows[j]);
 			sumRow = _mm256_hadd_ps(sumRow, sumRow);
-			sumRow = _mm256_hadd_ps(sumRow, sumRow);
-			temp2[u][j] = sumRow.m256_f32[0]+ sumRow.m256_f32[4];
-		}
-		
-		sumRow = _mm256_setzero_ps();
+			temp2[u][j] = double(sumRow.m256_f32[0]+ sumRow.m256_f32[4]);
+			sumRow = _mm256_setzero_ps();
+		}			
 	}
 
+
+	
 	for (int u = 0; u < blocksize; u++)
 	{
 		errRow = _mm256_setr_ps(temp2[0][u], temp2[1][u], temp2[2][u], temp2[3][u], temp2[4][u], temp2[5][u], temp2[6][u], temp2[7][u]);
@@ -2853,66 +2854,11 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 		{
 			sumRow = _mm256_hadd_ps(tempRows[j], tempRows[j]);
 			sumRow = _mm256_hadd_ps(sumRow, sumRow);
-			sumRow = _mm256_hadd_ps(sumRow, sumRow);
-			DCTblck->block[u][j] = sumRow.m256_f32[0] + sumRow.m256_f32[4];
-		}
-
-		sumRow = _mm256_setzero_ps();
-	}
-
-
-	/*float temp2[8][8] = { 0.f, };
-	float temp3[8][8] = { 0.f, };
-	for (int u = 0; u < blocksize; u++)
-	{
-		errRow = _mm256_cvtepi32_ps(_mm256_loadu_si256((__m256i*)Errblck->block[u]));
-
-		for (int j = 0; j < blocksize; j++)
-			tempRows[j] = _mm256_mul_ps(errRow, predictionRows[j]);
-
-		for (int j = 0; j < blocksize; j++)
-			sumRow = _mm256_add_ps(sumRow, tempRows[j]);
-
-
-		_mm256_storeu_ps(temp2[u], sumRow);
-		sumRow = _mm256_setzero_ps();
-	}
-
-	for (int u = 0; u < blocksize; u++)
-	{
-		errRow = _mm256_setr_ps(temp2[0][u], temp2[1][u], temp2[2][u], temp2[3][u], temp2[4][u], temp2[5][u], temp2[6][u], temp2[7][u]);
-
-		for (int j = 0; j < blocksize; j++)
-			tempRows[j] = _mm256_mul_ps(errRow, predictionRows[j]);
-
-		for (int j = 0; j < blocksize; j++)
-			sumRow = _mm256_add_ps(sumRow, tempRows[j]);
-
-		_mm256_storeu_ps((float*)DCTblck->block[u], sumRow);
-		sumRow = _mm256_setzero_ps();
-	}*/
-
-	/*for (int v = 0; v<blocksize; v++)
-	{
-		for (int u = 0; u<blocksize; u++)
-		{
-			for (int x = 0; x<blocksize; x++)
-			{
-				temp.block[v][u] += (double)Errblck->block[v][x] * costable[u][x];
-			}
+			DCTblck->block[j][u] = double(sumRow.m256_f32[0] + sumRow.m256_f32[4]);
+			sumRow = _mm256_setzero_ps();
 		}
 	}
 
-	for (int u = 0; u<blocksize; u++)
-	{
-		for (int v = 0; v<blocksize; v++)
-		{
-			for (int y = 0; y<blocksize; y++)
-			{
-				DCTblck->block[v][u] += temp.block[y][u] * costable[v][y];
-			}
-		}
-	}*/
 #else
 	// double type 시도 필요
 	__m256 predictionRows[8];
