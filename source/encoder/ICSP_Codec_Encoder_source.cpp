@@ -314,6 +314,7 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 				DPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
 				DPCM_Time_PerFrame += TimeCheck::TimeCheckEnd();
 				DCT_block(bd, numOfblck8, blocksize2, INTRA);
+				
 				DPCM_DC_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth, INTRA);
 				Quantization_block(bd, numOfblck8, blocksize2, QstepDC, QstepAC, INTRA);
 				
@@ -335,7 +336,7 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			free(bd.intraInverseDCTblck);
 			free(bd.originalblck16);
 		}
-		DPCM_Time_PerFrame /= (totalblck * 4);
+		DPCM_Time_PerFrame /= (totalblck * nblck8);
 		fprintf(gfp, "%lf\n", DPCM_Time_PerFrame);
 		DPCM_Time_PerFrame = 0;
 		
@@ -493,7 +494,8 @@ int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_te
 		gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
 		SAE_SIMD += _mm_extract_epi16(*(__m128i*)&gARV->sumRow, 0) + _mm_extract_epi16(*((__m128i*)&gARV->sumRow + 1), 0);
 	}
-			
+	
+
 	SAE = SAE_SIMD;
 #else
 	int SAE_SIMD = 0;
@@ -618,6 +620,7 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 		_mm256_storeu_si256((__m256i*)err_temp[4 * y + 3], _mm256_cvtepi16_epi32(*((__m128i*)&gARV->subRow + 1)));
 	}
 		
+
 
 	SAE = SAE_SIMD;
 #else
@@ -763,8 +766,7 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 		gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
 		SAE_SIMD += _mm_extract_epi16(*(__m128i*)&gARV->sumRow, 0) + _mm_extract_epi16(*((__m128i*)&gARV->subRow + 1), 0);
 	}
-		
-	
+
 	SAE = SAE_SIMD;
 #else
 	int SAE_SIMD = 0;
@@ -2821,10 +2823,8 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 	for (int i = 0; i < 8; i++)
 		predictionRows[i] = _mm256_loadu_ps(costable[i]);
 
-	// 어째 연산량이 더 많아진 것 같다...
-	// 실제로 시간을 측정해서 확인 필요
 	float temp2[8][8] = { 0.f, };
-	float temp3[8][8] = { 0.f  };
+	float temp3[8][8] = { 0.f,  };
 	for (int u = 0; u < blocksize; u++)
 	{
 		errRow = _mm256_cvtepi32_ps(_mm256_loadu_si256((__m256i*)Errblck->block[u]));
@@ -2833,12 +2833,16 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 			tempRows[j] = _mm256_mul_ps(errRow, predictionRows[j]);
 		
 		for (int j = 0; j < blocksize; j++)
-			sumRow = _mm256_add_ps(sumRow, tempRows[j]);
-		
-		_mm256_storeu_ps(temp2[u], sumRow);
-		sumRow = _mm256_setzero_ps();
+		{
+			sumRow = _mm256_hadd_ps(tempRows[j], tempRows[j]);
+			sumRow = _mm256_hadd_ps(sumRow, sumRow);
+			temp2[u][j] = double(sumRow.m256_f32[0]+ sumRow.m256_f32[4]);
+			sumRow = _mm256_setzero_ps();
+		}			
 	}
 
+
+	
 	for (int u = 0; u < blocksize; u++)
 	{
 		errRow = _mm256_setr_ps(temp2[0][u], temp2[1][u], temp2[2][u], temp2[3][u], temp2[4][u], temp2[5][u], temp2[6][u], temp2[7][u]);
@@ -2847,11 +2851,14 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 			tempRows[j] = _mm256_mul_ps(errRow, predictionRows[j]);
 
 		for (int j = 0; j < blocksize; j++)
-			sumRow = _mm256_add_ps(sumRow, tempRows[j]);
-
-		_mm256_storeu_ps((float*)DCTblck->block[u], sumRow);
-		sumRow = _mm256_setzero_ps();
+		{
+			sumRow = _mm256_hadd_ps(tempRows[j], tempRows[j]);
+			sumRow = _mm256_hadd_ps(sumRow, sumRow);
+			DCTblck->block[j][u] = double(sumRow.m256_f32[0] + sumRow.m256_f32[4]);
+			sumRow = _mm256_setzero_ps();
+		}
 	}
+
 #else
 	// double type 시도 필요
 	__m256 predictionRows[8];
