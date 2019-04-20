@@ -2347,6 +2347,14 @@ void getPaddingImage(unsigned char* src, unsigned char* dst, int padWidth, int p
 void get16block(unsigned char* img, unsigned char dst[][16], int y0, int x0, int width, int blocksize)  
 {
 	// padimg size - width: 382 height: 320
+	// extract a 16x16 block at (x0, y0) coordinate
+#if SIMD
+	int nInterLoop = blocksize / 2; // nInterLoop : 8
+	for (int y = 0; y < nInterLoop; y++)
+	{
+		_mm256_storeu_si256((__m256i*)(dst + (y * 2)), _mm256_loadu2_m128i((__m128i*)(img + (((y * 2 + 1)*width + y0*width) + x0)), (__m128i*)(img + (((y * 2)*width + y0*width) + x0))));
+	}		
+#else
 	for(int y=0; y<blocksize; y++)
 	{
 		for(int x=0; x<blocksize; x++)
@@ -2354,11 +2362,45 @@ void get16block(unsigned char* img, unsigned char dst[][16], int y0, int x0, int
 			dst[y][x] = img[(y*width+y0*width)+x+x0];
 		}
 	}
+#endif
 }
 int getSAD(unsigned char currentblck[][16], unsigned char spiralblck[][16], int blocksize)
 {
 	int SAD = 0;
 #if SIMD
+#if SIMDGLOBAL
+	int SAD_SIMD = 0;
+	__mmMIXED mixedRef;
+	__mmMIXED mixedSrc;
+
+	int nInterLoop = blocksize / 2; // 8¹ø
+	for (int y = 0; y < nInterLoop; y++)
+	{
+		mixedSrc.blck256 = _mm256_loadu_si256((__m256i*)currentblck[y*2]);
+		mixedRef.blck256 = _mm256_loadu_si256((__m256i*)spiralblck[y*2]);
+
+		gARV->currentRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[0]);
+		gARV->predictionRow	= _mm256_cvtepu8_epi16(mixedRef.blck128[0]);
+		gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
+		gARV->subRow = _mm256_abs_epi16(gARV->subRow);
+		_mm256_storeu_si256(gARV->resRows+(y * 2), gARV->subRow);
+
+		gARV->currentRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[1]);
+		gARV->predictionRow = _mm256_cvtepu8_epi16(mixedRef.blck128[1]);
+		gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
+		gARV->subRow = _mm256_abs_epi16(gARV->subRow);
+		_mm256_storeu_si256(gARV->resRows+(y * 2 + 1), gARV->subRow);
+
+		gARV->sumRow = _mm256_hadd_epi16(*(gARV->resRows + (y * 2)), *(gARV->resRows + (y * 2 + 1)));
+		gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
+		gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
+		gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
+		SAD_SIMD += _mm_extract_epi16(*(__m128i*)&gARV->sumRow, 0) + _mm_extract_epi16(*((__m128i*)&gARV->sumRow + 1), 0);
+	}
+
+	SAD = SAD_SIMD;
+
+#else
 	int SAD_SIMD = 0;
 	__m256i spiralRow;
 	__m256i crntRow;
@@ -2372,20 +2414,20 @@ int getSAD(unsigned char currentblck[][16], unsigned char spiralblck[][16], int 
 	int nInterLoop = blocksize / 2; // 8¹ø
 	for (int i = 0; i < nInterLoop; i++)
 	{
-		mixedSrc.blck256 = _mm256_loadu_si256((__m256i*)currentblck[i*2]);
-		mixedRef.blck256 = _mm256_loadu_si256((__m256i*)spiralblck[i*2]);
+		mixedSrc.blck256 = _mm256_loadu_si256((__m256i*)currentblck[i * 2]);
+		mixedRef.blck256 = _mm256_loadu_si256((__m256i*)spiralblck[i * 2]);
 
 		crntRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[0]);
 		spiralRow = _mm256_cvtepu8_epi16(mixedRef.blck128[0]);
 		subRow = _mm256_sub_epi16(crntRow, spiralRow);
 		subRow = _mm256_abs_epi16(subRow);
-		_mm256_storeu_si256(resRows+(i * 2), subRow);
+		_mm256_storeu_si256(resRows + (i * 2), subRow);
 
 		crntRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[1]);
 		spiralRow = _mm256_cvtepu8_epi16(mixedRef.blck128[1]);
 		subRow = _mm256_sub_epi16(crntRow, spiralRow);
 		subRow = _mm256_abs_epi16(subRow);
-		_mm256_storeu_si256(resRows+(i * 2 + 1), subRow);
+		_mm256_storeu_si256(resRows + (i * 2 + 1), subRow);
 	}
 
 	__m256i SADRows[8];
@@ -2397,7 +2439,7 @@ int getSAD(unsigned char currentblck[][16], unsigned char spiralblck[][16], int 
 			SAD_SIMD += SADRows[i].m256i_u16[j];
 
 	SAD = SAD_SIMD;
-
+#endif
 #else
 	// 16 x 16
 	for(int y=0; y<blocksize; y++)
@@ -2408,7 +2450,7 @@ int getSAD(unsigned char currentblck[][16], unsigned char spiralblck[][16], int 
 		}
 	}
 #endif
-	fprintf(gfp, "%d\n", SAD);
+	//fprintf(gfp, "%d\n", SAD);
 	return SAD;
 }
 void interYReconstruct(FrameData& cntFrm, FrameData& prevFrm)
