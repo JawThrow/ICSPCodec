@@ -253,9 +253,9 @@ int splitBlocks(IcspCodec &icC, int blocksize1, int blocksize2)
 int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 {
 #if SIMD
-	gfp = fopen("DPCM_Time_Check_per_frame_vector.txt", "wt");
+	gfp = fopen("DCT_Time_Check_per_frame_vector.txt", "wt");
 #else
-	gfp = fopen("DPCM_Time_Check_per_frame_scalar.txt", "wt");
+	gfp = fopen("DCT_Time_Check_per_frame_scalar.txt", "wt");
 #endif
 	int totalblck = frames->nblocks16;
 	int nblck8 = frames->nblocks8;
@@ -270,6 +270,7 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 		//TimeCheck::TimeCheckStart();
 		FrameData& frm = frames[numOfFrm];
 		double DPCM_Time_PerFrame = 0;
+		double DCT_Time_PerFrame = 0;
 		for(int numOfblck16=0; numOfblck16<totalblck; numOfblck16++)
 		{
 			/*if (numOfblck16 == 95)
@@ -310,10 +311,13 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			/* 할당 구간 끝 */
 			for(int numOfblck8=0; numOfblck8<nblck8; numOfblck8++)
 			{
-				TimeCheck::TimeCheckStart();
+				//TimeCheck::TimeCheckStart();
 				DPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
-				DPCM_Time_PerFrame += TimeCheck::TimeCheckEnd();
+				//DPCM_Time_PerFrame += TimeCheck::TimeCheckEnd();
+
+				TimeCheck::TimeCheckStart();
 				DCT_block(bd, numOfblck8, blocksize2, INTRA);
+				DCT_Time_PerFrame += TimeCheck::TimeCheckEnd();
 				
 				DPCM_DC_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth, INTRA);
 				Quantization_block(bd, numOfblck8, blocksize2, QstepDC, QstepAC, INTRA);
@@ -336,11 +340,13 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			free(bd.intraInverseDCTblck);
 			free(bd.originalblck16);
 		}
-		DPCM_Time_PerFrame /= (totalblck * nblck8);
-		fprintf(gfp, "%lf\n", DPCM_Time_PerFrame);
-		DPCM_Time_PerFrame = 0;
-		
-		//cout << fixed << "TimeCheck: " << TimeCheck::TimeCheckEnd() << endl;
+		//DPCM_Time_PerFrame /= (totalblck * nblck8);
+		//fprintf(gfp, "%lf\n", DPCM_Time_PerFrame);
+		//DPCM_Time_PerFrame = 0;
+		DCT_Time_PerFrame /= (totalblck * nblck8);
+		fprintf(gfp, "%lf\n", DCT_Time_PerFrame);
+		DCT_Time_PerFrame = 0;
+
 		intraImgReconstruct(frm);
 		//entropyCoding(frm, INTRA);
 
@@ -2064,17 +2070,23 @@ void intraImgReconstruct(FrameData &frm)
 int interPrediction(FrameData& cntFrm, FrameData& prevFrm, int QstepDC, int QstepAC)
 {
 #if SIMD
-	gfp = fopen("Inter_getSAD_vector.txt", "wt");
+	gfp = fopen("Inter_MotionEstimation_vector.txt", "at");
 #else
-	gfp = fopen("Inter_getSAD_scalar.txt", "wt");
+	gfp = fopen("Inter_MotionEstimation_scalar.txt", "at");
 #endif
 	int totalblck = cntFrm.nblocks16;
 	int nblock8 = cntFrm.nblocks8;
 	int blocksize1 = cntFrm.blocks->blocksize1;
 	int blocksize2 = cntFrm.blocks->blocksize2;
 	int splitWidth = cntFrm.splitWidth;
-		
+	
+	double MotionEstimation_PerFrame = 0;
+
+	TimeCheck::TimeCheckStart();
 	motionEstimation(cntFrm, prevFrm);
+	MotionEstimation_PerFrame = TimeCheck::TimeCheckEnd();
+	//fprintf(gfp, "%lf\n", MotionEstimation_PerFrame);
+	fclose(gfp);
 
 	for(int nblck=0; nblck<totalblck; nblck++)
 	{
