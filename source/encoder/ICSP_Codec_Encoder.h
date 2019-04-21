@@ -206,7 +206,7 @@ public:
 	__m256i absRow;
 	__m256i sumRow;
 	__m256i tempRows[2];
-	__m256i resRows[4];
+	__m256i resRows[16]; // inter prediction require 16 prediction rows
 	__m256i zeroRow;
 	__mmMIXED _mixed;
 	__mmMIXED PredMixed[4];
