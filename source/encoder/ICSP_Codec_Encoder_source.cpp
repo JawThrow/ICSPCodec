@@ -624,6 +624,12 @@ int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_tem
 		_mm256_storeu_si256(gARV->resRows + (y * 2 + 1), gARV->absRow);
 		_mm256_storeu_si256((__m256i*)err_temp[4 * y + 2], _mm256_cvtepi16_epi32(*(__m128i*)&gARV->subRow));
 		_mm256_storeu_si256((__m256i*)err_temp[4 * y + 3], _mm256_cvtepi16_epi32(*((__m128i*)&gARV->subRow + 1)));
+
+		gARV->sumRow = _mm256_hadd_epi16(*(gARV->resRows + (y * 2)), *(gARV->resRows + (y * 2 + 1)));
+		gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
+		gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
+		gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
+		SAE_SIMD += _mm_extract_epi16(*(__m128i*)&gARV->sumRow, 0) + _mm_extract_epi16(*((__m128i*)&gARV->subRow + 1), 0);
 	}
 		
 
@@ -833,33 +839,61 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 }
 void IDPCM_pix_0(unsigned char upper[][8], double current[][8], unsigned char restored_temp[][8], int blocksize)
 {	
-	int temp=0;
-	if(upper==NULL)
+#if SIMD
+	__m256i predictionRow;
+	__m256i currentRow;
+	__m256i restoredRow;
+	__m256i tempRow;
+	__mmMIXED mixedRow;
+	if (upper == NULL)
 	{
-		for(int y=0; y<blocksize; y++)
+		predictionRow = _mm256_set1_epi16(128);
+	}
+	else
+	{
+		__m256i tempLo = _mm256_cvtepu8_epi16(*(__m128i*)upper[blocksize - 1]);
+		predictionRow = _mm256_set_m128i(*(__m128i*)&tempLo, *(__m128i*)&tempLo);
+	}
+
+	for (int y = 0; y < blocksize; y++)
+	{
+		currentRow = _mm256_loadu_si256((__m256i*)&(current[y][0])); // shit... current type is double...
+		mixedRow.blck128[0] = _mm256_cvtpd_epi32(*((__m256d*)&currentRow));
+		currentRow = _mm256_loadu_si256((__m256i*)&(current[y][4]));
+		mixedRow.blck128[1] = _mm256_cvtpd_epi32(*((__m256d*)&currentRow));
+		restoredRow = _mm256_adds_epi16(currentRow, predictionRow);		
+	}
+
+#else
+	int temp = 0;
+	if (upper == NULL)
+	{
+		for (int y = 0; y<blocksize; y++)
 		{
-			for(int x=0; x<blocksize; x++)
+			for (int x = 0; x<blocksize; x++)
 			{
 				temp = current[y][x] + 128;
-				temp = (temp>255) ? 255:temp;
-				temp = (temp<0  ) ? 0  :temp;
+				temp = (temp>255) ? 255 : temp;
+				temp = (temp<0) ? 0 : temp;
 				restored_temp[y][x] = (unsigned char)temp;
 			}
 		}
 	}
 	else
 	{
-		for(int y=0; y<blocksize; y++)
+		for (int y = 0; y<blocksize; y++)
 		{
-			for(int x=0; x<blocksize; x++)
+			for (int x = 0; x<blocksize; x++)
 			{
-				temp = current[y][x] + upper[blocksize-1][x];
-				temp = (temp>255) ? 255:temp;
-				temp = (temp<0  ) ? 0  :temp;
+				temp = current[y][x] + upper[blocksize - 1][x];
+				temp = (temp>255) ? 255 : temp;
+				temp = (temp<0) ? 0 : temp;
 				restored_temp[y][x] = (unsigned char)temp;
 			}
 		}
 	}
+#endif
+	
 }
 void IDPCM_pix_1(unsigned char left[][8], double current[][8], unsigned char restored_temp[][8], int blocksize)
 {
