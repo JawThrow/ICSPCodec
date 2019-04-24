@@ -840,50 +840,68 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 void IDPCM_pix_0(unsigned char upper[][8], double current[][8], unsigned char restored_temp[][8], int blocksize)
 {	
 #if SIMD
-	__m256i predictionRow;
-	__m256i currentRow;
-	__m256i restoredRow;
-	__m256i tempRow;
-	__mmMIXED mixedRow;
-		
-	__m256i resRow;
-	__m256d tempRowd;
-	__mmMIXED mixedCurrentRow;
-	__m256i zeroRow = _mm256_setzero_si256();
+	//__m256i predictionRow;
+	//__m256i currentRow;
+	//__m256i restoredRow;
+	//__m256i tempRow;
+	//__mmMIXED mixedRow;
+	//	
+	//__m256i resRow;
+	//__m256d tempRowd;
+	//__mmMIXED mixedCurrentRow;
+	//__m256i zeroRow = _mm256_setzero_si256();
 
+	//if (upper == NULL)
+	//{
+	//	predictionRow = _mm256_set1_epi16(128);
+	//}
+	//else
+	//{
+	//	predictionRow = _mm256_cvtepu8_epi32(*(__m128i*)upper[blocksize - 1]);
+	//}
+
+	//for (int y = 0; y < blocksize; y++)
+	//{
+	//	tempRowd = _mm256_loadu_pd(&current[y][0]); // shit... current type is double...
+	//	mixedCurrentRow.blck128[0] = _mm256_cvtpd_epi32(tempRowd);
+	//	tempRowd = _mm256_loadu_pd(&current[y][4]);
+	//	mixedCurrentRow.blck128[1] = _mm256_cvtpd_epi32(tempRowd);
+	//	restoredRow = _mm256_add_epi32(mixedCurrentRow.blck256, predictionRow);
+	//	restoredRow = _mm256_packs_epi32(restoredRow, zeroRow);
+	//	restoredRow = _mm256_packus_epi16(restoredRow, zeroRow);
+
+	//	memcpy(&restored_temp[y], &restoredRow.m256i_i32[0], sizeof(int));
+	//	memcpy(&restored_temp[y][4], &restoredRow.m256i_i32[4], sizeof(int));
+	//}
+
+
+	/*int temp = 0;
 	if (upper == NULL)
 	{
-		predictionRow = _mm256_set1_epi16(128);
+		for (int y = 0; y<blocksize; y++)
+		{
+			for (int x = 0; x<blocksize; x++)
+			{
+				temp = current[y][x] + 128;
+				temp = (temp>255) ? 255 : temp;
+				temp = (temp<0) ? 0 : temp;
+				restored_temp[y][x] = (unsigned char)temp;
+			}
+		}
 	}
 	else
 	{
-		/*__m256i tempLo = _mm256_cvtepu8_epi16(*(__m128i*)upper[blocksize - 1]);
-		predictionRow = _mm256_set_m128i(*(__m128i*)&tempLo, *(__m128i*)&tempLo);*/
-		predictionRow = _mm256_cvtepu8_epi32(*(__m128i*)upper[blocksize - 1]);
-	}
-
-	for (int y = 0; y < blocksize; y++)
-	{
-		//currentRow = _mm256_loadu_si256((__m256i*)&(current[y][0])); // shit... current type is double...
-		//mixedRow.blck128[0] = _mm256_cvtpd_epi32(*((__m256d*)&currentRow));
-		//currentRow = _mm256_loadu_si256((__m256i*)&(current[y][4]));
-		//mixedRow.blck128[1] = _mm256_cvtpd_epi32(*((__m256d*)&currentRow));
-		//restoredRow = _mm256_add_epi32(currentRow, predictionRow);
-		
-		tempRowd = _mm256_loadu_pd(&current[y][0]); // shit... current type is double...
-		mixedCurrentRow.blck128[0] = _mm256_cvtpd_epi32(tempRowd);
-		tempRowd = _mm256_loadu_pd(&current[y][4]);
-		mixedCurrentRow.blck128[1] = _mm256_cvtpd_epi32(tempRowd);
-		restoredRow = _mm256_add_epi32(mixedCurrentRow.blck256, predictionRow);
-		restoredRow = _mm256_packs_epi32(restoredRow, zeroRow); // restored1,2,3,4,  9,10,11,12
-		restoredRow = _mm256_packus_epi16(restoredRow, zeroRow); // restored1,2,3,4,  17, 18, 19, 20
-		/*restored_temp[y][0] = _mm256_extract_epi32(restoredRow, 0);
-		restored_temp[y][4] = _mm256_extract_epi32(restoredRow, 4);*/
-		*restored_temp[y] = restoredRow.m256i_i32[0];
-		*(restored_temp[y] + 4) = restoredRow.m256i_i32[4];
-		
-		// 32 pixel을 모아서 store 해야하나...
-	}
+		for (int y = 0; y<blocksize; y++)
+		{
+			for (int x = 0; x<blocksize; x++)
+			{
+				temp = current[y][x] + upper[blocksize - 1][x];
+				temp = (temp>255) ? 255 : temp;
+				temp = (temp<0) ? 0 : temp;
+				restored_temp[y][x] = (unsigned char)temp;
+			}
+		}
+	}*/
 
 #else
 	int temp = 0;
