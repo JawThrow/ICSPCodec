@@ -5,7 +5,7 @@
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 
-#define SIMD false
+#define SIMD true
 
 #ifdef SIMD
 #define SIMDGLOBAL true
@@ -253,9 +253,9 @@ int splitBlocks(IcspCodec &icC, int blocksize1, int blocksize2)
 int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 {
 #if SIMD
-	gfp = fopen("IDCPM_Time_Check_per_frame_vector.txt", "wt");
+	gfp = fopen("IDCT_time_check_per_frame_vector.txt", "wt");
 #else
-	gfp = fopen("IDCPM_Time_Check_per_frame_scalar.txt", "wt");
+	gfp = fopen("IDCT_time_check_per_frame_scalar.txt", "wt");
 #endif
 	int totalblck = frames->nblocks16;
 	int nblck8 = frames->nblocks8;
@@ -272,6 +272,7 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 		double DPCM_Time_PerFrame = 0;
 		double DCT_Time_PerFrame = 0;
 		double IDPCM_Time_PerFrame = 0;
+		double IDCT_Time_PerFrame = 0;
 		for(int numOfblck16=0; numOfblck16<totalblck; numOfblck16++)
 		{
 			/*if (numOfblck16 == 95)
@@ -316,9 +317,9 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 				DPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
 				//DPCM_Time_PerFrame += TimeCheck::TimeCheckEnd();
 
-				TimeCheck::TimeCheckStart();
+				//TimeCheck::TimeCheckStart();
 				DCT_block(bd, numOfblck8, blocksize2, INTRA);
-				DCT_Time_PerFrame += TimeCheck::TimeCheckEnd();
+				//DCT_Time_PerFrame += TimeCheck::TimeCheckEnd();
 				
 				DPCM_DC_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth, INTRA);
 				Quantization_block(bd, numOfblck8, blocksize2, QstepDC, QstepAC, INTRA);
@@ -327,10 +328,14 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 
 				IQuantization_block(bd, numOfblck8, blocksize2, QstepDC, QstepAC, INTRA);
 				IDPCM_DC_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth, INTRA);
-				IDCT_block(bd, numOfblck8, blocksize2, INTRA);
+
 				TimeCheck::TimeCheckStart();
+				IDCT_block(bd, numOfblck8, blocksize2, INTRA);
+				IDCT_Time_PerFrame += TimeCheck::TimeCheckEnd();
+
+				//TimeCheck::TimeCheckStart();
 				IDPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
-				IDPCM_Time_PerFrame += TimeCheck::TimeCheckEnd();
+				//IDPCM_Time_PerFrame += TimeCheck::TimeCheckEnd();
 			}		
 			intraCbCr(frm, cbbd, crbd, blocksize2, numOfblck16, QstepDC, QstepAC);	// 5th parameter, numOfblck16, is numOfblck8 in CbCr
 			mergeBlock(bd, blocksize2, INTRA);
@@ -351,9 +356,13 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 		fprintf(gfp, "%lf\n", DCT_Time_PerFrame);
 		DCT_Time_PerFrame = 0;*/
 
-		IDPCM_Time_PerFrame /= (totalblck * nblck8);
+		/*IDPCM_Time_PerFrame /= (totalblck * nblck8);
 		fprintf(gfp, "%lf\n", IDPCM_Time_PerFrame);
-		IDPCM_Time_PerFrame = 0;
+		IDPCM_Time_PerFrame = 0;*/
+
+		IDCT_Time_PerFrame /= (totalblck * nblck8);
+		fprintf(gfp, "%lf\n", IDCT_Time_PerFrame);
+		IDCT_Time_PerFrame = 0;
 
 
 		intraImgReconstruct(frm);
@@ -911,7 +920,7 @@ void IDPCM_pix_0(unsigned char upper[][8], double current[][8], unsigned char re
 		}
 	}
 #endif
-	
+
 }
 void IDPCM_pix_1(unsigned char left[][8], double current[][8], unsigned char restored_temp[][8], int blocksize)
 {
@@ -2989,12 +2998,12 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 #if SIMD
 #if SIMDGLOBAL
 	// double type 시도 필요
-	__m256 predictionRows[8];
+	__m256 cosTableRow[8];
 	__m256 errRow;
 	__m256 tempRows[8];
 	__m256 sumRow = _mm256_setzero_ps();
 	for (int i = 0; i < 8; i++)
-		predictionRows[i] = _mm256_loadu_ps(costable[i]);
+		cosTableRow[i] = _mm256_loadu_ps(costable[i]);
 
 	float temp2[8][8] = { 0.f, };
 	float temp3[8][8] = { 0.f,  };
@@ -3003,7 +3012,7 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 		errRow = _mm256_cvtepi32_ps(_mm256_loadu_si256((__m256i*)Errblck->block[u]));
 
 		for (int j = 0; j < blocksize; j++)
-			tempRows[j] = _mm256_mul_ps(errRow, predictionRows[j]);
+			tempRows[j] = _mm256_mul_ps(errRow, cosTableRow[j]);
 		
 		for (int j = 0; j < blocksize; j++)
 		{
@@ -3021,7 +3030,7 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 		errRow = _mm256_setr_ps(temp2[0][u], temp2[1][u], temp2[2][u], temp2[3][u], temp2[4][u], temp2[5][u], temp2[6][u], temp2[7][u]);
 
 		for (int j = 0; j < blocksize; j++)
-			tempRows[j] = _mm256_mul_ps(errRow, predictionRows[j]);
+			tempRows[j] = _mm256_mul_ps(errRow, cosTableRow[j]);
 
 		for (int j = 0; j < blocksize; j++)
 		{
@@ -3040,8 +3049,6 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 	for (int i = 0; i < 8; i++)
 		predictionRows[i] = _mm256_loadu_ps(costable[i]);
 
-	// 어째 연산량이 더 많아진 것 같다...
-	// 실제로 시간을 측정해서 확인 필요
 	float temp2[8][8] = { 0.f, };
 	for (int u = 0; u < 8; u++)
 	{
@@ -3233,37 +3240,79 @@ void IDCT_block(BlockData &bd, int numOfblck8, int blocksize, int type)
 		IQuanblck = (bd.interInverseQuanblck[numOfblck8]);
 	}
 
+#if SIMD
+	__m256 iQuanRow;
+	__m256 sumRow;
+	__m256 tempRow;
+	__m256 tempRows[8];
+	__m256 costableRows[8];
+	float temp2[8][8] = { 0, };
+
+	/*double *Cu = (double *)malloc(sizeof(double)*blocksize);
+	double *Cv = (double *)malloc(sizeof(double)*blocksize);*/
+	__m256 CuRow = _mm256_set1_ps(1.f);
+	__m256 CvRow = _mm256_set1_ps(1.f);
+	__m256 quadRow = _mm256_set1_ps(1.f / 4.f);
+
+	CuRow.m256_f32[0] = CvRow.m256_f32[0] = irt2;
+
+	for (int y = 0; y < blocksize; y++)
+	{
+		tempRow = _mm256_loadu_ps(costable[y]);
+		for (int i = 0; i < blocksize; i++)
+			costableRows[i].m256_f32[y] = tempRow.m256_f32[i]; // vertical direction initialize
+	}
+
+	for (int y = 0; y < blocksize; y++)
+	{
+		iQuanRow = _mm256_cvtepi32_ps(_mm256_loadu_si256((__m256i*)IQuanblck->block[y]));
+
+		for(int j = 0; j < blocksize; j++)
+			tempRows[j] = _mm256_mul_ps(CvRow, _mm256_mul_ps(iQuanRow, costableRows[j]));
+
+		for (int j = 0; j < blocksize; j++)
+		{
+			sumRow = _mm256_hadd_ps(tempRows[j], tempRows[j]);
+			sumRow = _mm256_hadd_ps(sumRow, sumRow);
+			temp2[y][j] = sumRow.m256_f32[0] + sumRow.m256_f32[4];
+			sumRow = _mm256_setzero_ps();
+		}
+	}
+	
+	for (int u = 0; u < blocksize; u++)
+	{
+		tempRow = _mm256_setr_ps(temp2[0][u], temp2[1][u], temp2[2][u], temp2[3][u], temp2[4][u], temp2[5][u], temp2[6][u], temp2[7][u]);
+
+		for (int j = 0; j < blocksize; j++)
+			tempRows[j] = _mm256_mul_ps(CuRow, _mm256_mul_ps(tempRow, costableRows[j]));
+
+		for (int j = 0; j < blocksize; j++)
+		{
+			sumRow = _mm256_hadd_ps(tempRows[j], tempRows[j]);
+			sumRow = _mm256_hadd_ps(sumRow, sumRow);			
+			IDCTblck->block[j][u] = double(sumRow.m256_f32[0] + sumRow.m256_f32[4]);
+			sumRow = _mm256_setzero_ps();
+		}
+	}
+#else
 	double *Cu = (double *)malloc(sizeof(double)*blocksize);
 	double *Cv = (double *)malloc(sizeof(double)*blocksize);
 
 	Cu[0] = Cv[0] = irt2;
-	for(int i=1; i<blocksize; i++)
+	for (int i = 1; i<blocksize; i++)
 	{
 		Cu[i] = Cv[i] = 1.;
 	}
 
-	for(int y=0; y<blocksize; y++)
+	for (int y = 0; y<blocksize; y++)
 	{
-		for(int x=0; x<blocksize; x++)
+		for (int x = 0; x<blocksize; x++)
 		{
 			IDCTblck->block[y][x] = temp.block[y][x] = 0;
-		}			
+		}
 	}
 
-	//for(int y=0; y<blocksize; y++)
-	//{
-	//	for(int x=0; x<blocksize; x++)
-	//	{
-	//		for(int v=0; v<blocksize; v++)
-	//		{
-	//			for(int u=0; u<blocksize; u++)
-	//			{
-	//				IDCTblck->block[y][x] += Cu[u]*Cv[v] * (double)IQuanblck->block[v][u] * cos(((2*x+1)*u*pi)/16.) * cos(((2*y+1)*v*pi)/16.);   // 실제로는 bd.intraDCTblck[n].block[u][v]이 아니라 InverseQuanblck가 맞음
-	//			}
-	//		}
-	//	}
-	//}
-
+	// costable 곱하는 방향이 동일?
 	for(int y=0; y<blocksize; y++)
 	{
 		for(int x=0; x<blocksize; x++)
@@ -3286,72 +3335,19 @@ void IDCT_block(BlockData &bd, int numOfblck8, int blocksize, int type)
 		}
 	}
 
-	for(int i=0; i<blocksize; i++)
-	{
-		for(int j=0; j<blocksize; j++)
-		{
-			IDCTblck->block[i][j] *= (1./4.);
-		}
-	}
-
-
-
-	//Block8d idct2blck;
-	//for(int y=0; y<blocksize; y++)
-	//	for(int x=0; x<blocksize; x++)
-	//		idct2blck.block[y][x] = 0;
-
-	//for(int y=0; y<blocksize; y++)
-	//{
-	//	for(int x=0; x<blocksize; x++)
-	//	{
-	//		for(int v=0; v<blocksize; v++)
-	//		{
-	//			for(int u=0; u<blocksize; u++)
-	//			{
-	//				idct2blck.block[y][x] += Cu[u]*Cv[v] * (double)IQuanblck->block[v][u] * cos(((2*x+1)*u*pi)/16.) * cos(((2*y+1)*v*pi)/16.);   // 실제로는 bd.intraDCTblck[n].block[u][v]이 아니라 InverseQuanblck가 맞음
-	//			}
-	//		}
-	//	}
-	//}
-
-	//for(int i=0; i<blocksize; i++)
-	//{
-	//	for(int j=0; j<blocksize; j++)
-	//	{
-	//		idct2blck.block[i][j] *= (1./4.);
-	//	}
-	//}
-
-
-	//cout << "dct2" << endl;
-	//cout.precision(2);
-	//for(int y=0; y<blocksize; y++)
-	//{
-	//	for(int x=0; x<blocksize; x++)
-	//	{
-	//		printf("%3.2lf ", idct2blck.block[y][x]);
-	//	}
-	//	cout << endl;
-	//}
-	//cout << endl << endl;
-
-	/*cout << "dct1" << endl;
-	for(int y=0; y<blocksize; y++)		
-	{
-		for(int x=0; x<blocksize; x++)
-		{
-			printf("%3.2lf ", IDCTblck->block[y][x]);
-		}
-		cout << endl;
-	}
-	cout << endl << endl;
-	system("pause");
-*/
 
 	free(Cv);
 	free(Cu);
-	//free(IQuanblck);
+#endif
+	
+	for (int i = 0; i<blocksize; i++)
+	{
+		for (int j = 0; j<blocksize; j++)
+		{
+			IDCTblck->block[i][j] *= (1. / 4.);
+		}
+	}
+	
 }
 void reordering(BlockData &bd, int numOfblck8, int predmode)
 {
