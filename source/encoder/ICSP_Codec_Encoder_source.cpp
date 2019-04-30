@@ -3139,34 +3139,51 @@ void Quantization_block(BlockData &bd, int numOfblck8, int blocksize, int QstepD
 		ACflag = &(bd.interACflag[numOfblck8]);
 	}
 
+#if SIMD
+	// DCTblck is double type
+	// Quanblck is integer type
+	__m256d DCTRowd[2];
+	__m256i DCTRowi;
+	__m256i QuanRow;
+	__m256i QstepRow = _mm256_set1_epi32(QstepAC);
+	for (int y = 0; y < blocksize; y++)
+	{
+		//DCTRowi = _mm256_loadu2_m128i(_mm256_cvtpd_epi32(_mm256_loadu_pd(&DCTblck->block[y][4])), _mm256_cvtpd_epi32(_mm256_loadu_pd(&(*DCTblck->block[y]))));
+		DCTRowd[0] = _mm256_loadu_pd(DCTblck->block[y]);
+		DCTRowd[1] = _mm256_loadu_pd(&DCTblck->block[y][4]);
+		DCTRowi = _mm256_loadu2_m128i(&_mm256_cvtpd_epi32(DCTRowd[1]), &_mm256_cvtpd_epi32(DCTRowd[0]));
+		//_mm256_div_pd
+		//_mm256_div_ps
+	}
 
-	for(int y=0; y<blocksize; y++)
-		for(int x=0; x<blocksize; x++)
+#else
+	for (int y = 0; y<blocksize; y++)
+		for (int x = 0; x<blocksize; x++)
 			Quanblck->block[y][x] = 0;
 
-	int Qstep=0;
-	for(int y=0; y<blocksize; y++)
+	int Qstep = 0;
+	for (int y = 0; y<blocksize; y++)
 	{
-		for(int x=0; x<blocksize; x++)
+		for (int x = 0; x<blocksize; x++)
 		{
-			Qstep = (x==0&&y==0) ? QstepDC:QstepAC;
-			Quanblck->block[y][x] = (int)floor(DCTblck->block[y][x] + 0.5) / Qstep;
+			Qstep = (x == 0 && y == 0) ? QstepDC : QstepAC;
+			Quanblck->block[y][x] = (int)(DCTblck->block[y][x] + 0.5) / Qstep;
 		}
 	}
 
 	*ACflag = 1;
-	for(int y=0; y<blocksize && (*ACflag); y++)
+	for (int y = 0; y<blocksize && (*ACflag); y++)
 	{
-		for(int x=0; x<blocksize && (*ACflag); x++)
+		for (int x = 0; x<blocksize && (*ACflag); x++)
 		{
-			if(x==0&&y==0) continue;
-			*ACflag = (Quanblck->block[y][x]!=0)?0:1;
-			//cout << y*blocksize+x << " ";
+			if (x == 0 && y == 0) continue;
+			*ACflag = (Quanblck->block[y][x] != 0) ? 0 : 1;
 		}
 	}
-	//system("pause");
-	//cout << *ACflag << " ";
-	// DCT_block에서 저장된 Data는 이 함수말고 사용되는 곳이 없으므로 free
+#endif
+
+	
+
 	free(DCTblck);
 }
 void IQuantization_block(BlockData &bd, int numOfblck8, int blocksize, int QstepDC, int QstepAC, int type)
