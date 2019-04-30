@@ -253,9 +253,9 @@ int splitBlocks(IcspCodec &icC, int blocksize1, int blocksize2)
 int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 {
 #if SIMD
-	gfp = fopen("IDCT_time_check_per_frame_vector.txt", "wt");
+	gfp = fopen("Quan_time_check_per_frame_vector.txt", "wt");
 #else
-	gfp = fopen("IDCT_time_check_per_frame_scalar.txt", "wt");
+	gfp = fopen("Quan_time_check_per_frame_scalar.txt", "wt");
 #endif
 	int totalblck = frames->nblocks16;
 	int nblck8 = frames->nblocks8;
@@ -271,8 +271,10 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 		FrameData& frm = frames[numOfFrm];
 		double DPCM_Time_PerFrame = 0;
 		double DCT_Time_PerFrame = 0;
+		double Quan_Time_PerFrame = 0;
 		double IDPCM_Time_PerFrame = 0;
 		double IDCT_Time_PerFrame = 0;
+
 		for(int numOfblck16=0; numOfblck16<totalblck; numOfblck16++)
 		{
 			/*if (numOfblck16 == 95)
@@ -322,16 +324,20 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 				//DCT_Time_PerFrame += TimeCheck::TimeCheckEnd();
 				
 				DPCM_DC_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth, INTRA);
-				Quantization_block(bd, numOfblck8, blocksize2, QstepDC, QstepAC, INTRA);
 				
+				TimeCheck::TimeCheckStart();
+				Quantization_block(bd, numOfblck8, blocksize2, QstepDC, QstepAC, INTRA);
+				Quan_Time_PerFrame += TimeCheck::TimeCheckEnd();
+
+
 				reordering(bd, numOfblck8, INTRA);
 
 				IQuantization_block(bd, numOfblck8, blocksize2, QstepDC, QstepAC, INTRA);
 				IDPCM_DC_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth, INTRA);
 
-				TimeCheck::TimeCheckStart();
+				//TimeCheck::TimeCheckStart();
 				IDCT_block(bd, numOfblck8, blocksize2, INTRA);
-				IDCT_Time_PerFrame += TimeCheck::TimeCheckEnd();
+				//IDCT_Time_PerFrame += TimeCheck::TimeCheckEnd();
 
 				//TimeCheck::TimeCheckStart();
 				IDPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
@@ -360,9 +366,13 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 		fprintf(gfp, "%lf\n", IDPCM_Time_PerFrame);
 		IDPCM_Time_PerFrame = 0;*/
 
-		IDCT_Time_PerFrame /= (totalblck * nblck8);
+		/*IDCT_Time_PerFrame /= (totalblck * nblck8);
 		fprintf(gfp, "%lf\n", IDCT_Time_PerFrame);
-		IDCT_Time_PerFrame = 0;
+		IDCT_Time_PerFrame = 0;*/
+
+		Quan_Time_PerFrame /= (totalblck * nblck8);
+		fprintf(gfp, "%lf\n", Quan_Time_PerFrame);
+		Quan_Time_PerFrame = 0;
 
 
 		intraImgReconstruct(frm);
@@ -3143,17 +3153,30 @@ void Quantization_block(BlockData &bd, int numOfblck8, int blocksize, int QstepD
 	// DCTblck is double type
 	// Quanblck is integer type
 	__m256d DCTRowd[2];
+	__m256  DCTRowf;
 	__m256i DCTRowi;
 	__m256i QuanRow;
-	__m256i QstepRow = _mm256_set1_epi32(QstepAC);
+	__m256 QuanRowf;
+	__m256 QstepRowf = _mm256_set1_ps(QstepAC);
 	for (int y = 0; y < blocksize; y++)
 	{
-		//DCTRowi = _mm256_loadu2_m128i(_mm256_cvtpd_epi32(_mm256_loadu_pd(&DCTblck->block[y][4])), _mm256_cvtpd_epi32(_mm256_loadu_pd(&(*DCTblck->block[y]))));
 		DCTRowd[0] = _mm256_loadu_pd(DCTblck->block[y]);
 		DCTRowd[1] = _mm256_loadu_pd(&DCTblck->block[y][4]);
-		DCTRowi = _mm256_loadu2_m128i(&_mm256_cvtpd_epi32(DCTRowd[1]), &_mm256_cvtpd_epi32(DCTRowd[0]));
-		//_mm256_div_pd
-		//_mm256_div_ps
+		DCTRowf = _mm256_loadu2_m128((float*)&(_mm256_cvtpd_ps(DCTRowd[1])), (float*)&(_mm256_cvtpd_ps(DCTRowd[0])));
+		QuanRowf = _mm256_div_ps(DCTRowf, QstepRowf);
+		QuanRow = _mm256_cvtps_epi32(QuanRowf);
+		_mm256_storeu_si256((__m256i*)Quanblck->block[y], QuanRow);
+	}
+	Quanblck->block[0][0] = (DCTblck->block[0][0]+0.5) / QstepDC;
+
+	*ACflag = 1;
+	for (int y = 0; y<blocksize && (*ACflag); y++)
+	{
+		for (int x = 0; x<blocksize && (*ACflag); x++)
+		{
+			if (x == 0 && y == 0) continue;
+			*ACflag = (Quanblck->block[y][x] != 0) ? 0 : 1;
+		}	
 	}
 
 #else
