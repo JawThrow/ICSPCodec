@@ -3224,10 +3224,20 @@ void IQuantization_block(BlockData &bd, int numOfblck8, int blocksize, int Qstep
 		IQuanblck = (bd.interInverseQuanblck[numOfblck8]);
 	}
 
-	for(int y=0; y<blocksize; y++)
-		for(int x=0; x<blocksize; x++)
-			IQuanblck->block[y][x] = 0;
+#if SIMD
+	__m256i QuanRow;
+	__m256i IQuanRow;
+	__m256i QStepRow = _mm256_set1_epi32(QstepAC);
+	for (int y = 0; y < blocksize; y++)
+	{
+		QuanRow = _mm256_loadu_si256((__m256i*)Quanblck->block[y]);
+		IQuanRow = _mm256_mullo_epi32(QuanRow, QStepRow);
+		_mm256_storeu_si256((__m256i*)IQuanblck->block[y], IQuanRow);	
+	}
+	IQuanblck->block[0][0] = Quanblck->block[0][0] * QstepDC;
 
+	
+#else
 	int Qstep=0;
 	for(int y=0; y<blocksize; y++)
 	{
@@ -3237,31 +3247,8 @@ void IQuantization_block(BlockData &bd, int numOfblck8, int blocksize, int Qstep
 			IQuanblck->block[y][x] = Quanblck->block[y][x] * Qstep;
 		}
 	}
-
-	/*cout << "Quanblck" << endl;
-	for(int y=0; y<blocksize; y++)
-	{
-		for(int x=0; x<blocksize; x++)
-		{
-			cout << Quanblck->block[y][x] << " ";
-		}
-		cout << endl;
-	}
-	cout << endl << endl;
-
-	cout << "IQuanblck" << endl;
-	for(int y=0; y<blocksize; y++)
-	{
-		for(int x=0; x<blocksize; x++)
-		{
-			cout << IQuanblck->block[y][x] << " ";
-		}
-		cout << endl;
-	}
-	cout << endl << endl;
-	system("pause");*/
-
-	// data saved in Quantization doesn`s need after IQuantization Processing, So free
+#endif	
+	// data saved in Quantization did not need after IQuantization Processing, So free
 	free(Quanblck);
 }
 void IDCT_block(BlockData &bd, int numOfblck8, int blocksize, int type)
