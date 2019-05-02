@@ -1,6 +1,6 @@
 ## ICSP Codec
 ### Introduction
-This is a implementation of video codec based on MEPG-2.
+This is a implementation of video codec based on H.261.
 This codec is called as ICSP codec because the specs and theories of this codec are from ICSP Lab(https://icsp.hanyang.ac.kr).
 
 if you have any kinds of feedback and question, please contact me.
