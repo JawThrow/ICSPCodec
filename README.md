@@ -22,7 +22,8 @@ ICSP codec supports three-direction prediction mode in intra prediction. Vectica
 
 ![Intra prediction](https://user-images.githubusercontent.com/36951642/57229516-41cb1180-7051-11e9-83a0-da9e953b989a.png)
 
-The green square is a reconstructed reference pixel around the current block. Intra prediction uses a reference pixel corresponding to each direction mode to generate a prediction block. DC mode generate prediction block using mean value of vertical and horizontal reference pixels. If reference pixels does not exist by some reason(first block, first row blocks, first colum blocks...), then it is replaced by integer value 127.
+The green square is a reconstructed reference pixel around the current block. Intra prediction uses a reference pixel corresponding to each direction mode to generate a prediction block. DC mode generate prediction block using mean value of vertical and horizontal reference pixels. If reference pixels does not exist by some reason(first block, first row blocks, first colum blocks...), then it is replaced by integer value 127. You can set a period of a intra prediction frame in one sequcece by initialize 'intraPerid' as a integer value. For example, if you initialize 'intraPeriod' as 10 and one sequence consists of 300 frames, then every 10 frames are encoded as intra prediction mode and other frames are encoded as inter prediction.
+
 #### All Intra Prediction Mode
 ICSP Codec supports special mode, All Intra Prediction Mode. All Intra Prediction Mode encodes all of frames in one sqeuence using intra prediction mode. You can operate ICSP Codec as All Intra Prediction Mode by initialize 'intraPerid' veriable as ALL_INTRA macro value.
 ### Inter Prediction
