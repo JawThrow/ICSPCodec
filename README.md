@@ -30,9 +30,10 @@ ICSP Codec supports special mode, All Intra Prediction Mode. All Intra Predictio
 
 ### DCT Transformation & Quantization
 
-### Entropy coding
+### Entropy Coding
 
-### AVX Intrinsics mode
+### Bit Stream Syntax
+### AVX Intrinsics Mode
 
 ### Contents
 | Folder | description |
