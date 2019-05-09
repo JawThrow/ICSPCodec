@@ -27,12 +27,15 @@ The green square is a reconstructed reference pixel around the current block. In
 #### All Intra Prediction Mode
 ICSP Codec supports special mode, All Intra Prediction Mode. All Intra Prediction Mode encodes all of frames in one sqeuence using intra prediction mode. You can operate ICSP Codec as All Intra Prediction Mode by initialize 'intraPerid' veriable as ALL_INTRA macro value.
 ### Inter Prediction
+#### Motion Estimation
+#### Motion Compensation
 
 ### DCT Transformation & Quantization
 
 ### Entropy Coding
 
 ### Bit Stream Syntax
+
 ### AVX Intrinsics Mode
 
 ### Contents
