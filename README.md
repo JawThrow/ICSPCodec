@@ -31,13 +31,20 @@ ICSP Codec supports only backword prediction. That is, inter prediction blocks a
 
 ![image](https://user-images.githubusercontent.com/36951642/57631044-b2d27200-75d9-11e9-8997-8c8d64738c97.png)
 
-Basically, inter prediction process is to find the location of the most similar block with current block in previous frame(fn-1). Also current blocks are in current frame(fn). in the figure above, red block is a current block in current frame. Green block is the one closest to current block among negibor blocks around red block in previous frame. ICSP Codec uses search method as 'spiral search'.
+Basically, inter prediction process is to find the location of the most similar block with current block in previous frame(fn-1). Also, current blocks are in current frame(fn). in the figure above, red block is a current block in current frame. Green block is the one closest to current block among negibor blocks around red block in previous frame. ICSP Codec uses search method as 'spiral search'.
 Spiral search in ICSP Codec means that search the block by round and round the current block position like sprial per a pixel unit.
 
-![image](https://user-images.githubusercontent.com/36951642/57630962-8cacd200-75d9-11e9-92ac-47231b3e9a67.png)
+![image](https://user-images.githubusercontent.com/36951642/57704034-1fae4080-769c-11e9-91ef-c10880442f18.png)
 
-I attached the above picture for conceptual understanding about spiral search. I hope there is no misunderstanding. ICSP Codec move search block by a pixel unit and find similar block which have minimum SAD(Sum of Absolute Difference) between current block and seach block.
+I attached the above picture for conceptual understanding about spiral search. I hope there is no misunderstanding. ICSP Codec moves search block by a pixel unit and find a similar block which has minimum SAD(Sum of Absolute Difference) between current block and seach block.
+
+Up to this point, it was a conceptual explanation of inter prediction. The inter prediction consists of motion estimation and motion compensation, and I will briefly explain the two process.
+
 #### Motion Estimation
+Simply speaking, motion estimation is to generate a motion vector that represents the distance between a current block position and a similar block which has the smallest SAD.
+
+![image](https://user-images.githubusercontent.com/36951642/57705527-12468580-769f-11e9-9312-a06ecd36a4b4.png)
+
 #### Motion Compensation
 
 ### DCT Transformation & Quantization
