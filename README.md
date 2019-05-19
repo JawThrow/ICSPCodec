@@ -41,11 +41,12 @@ I attached the above picture for conceptual understanding about spiral search. I
 Up to this point, it was a conceptual explanation of inter prediction. The inter prediction consists of motion estimation and motion compensation, and I will briefly explain the two process.
 
 #### Motion Estimation
-Simply speaking, motion estimation is to generate a motion vector that represents the distance between a current block position and a similar block which has the smallest SAD.
+Simplly speaking, motion estimation is to generate a motion vector that represents the distance between a current block position and a similar block which has the smallest SAD.
 
 ![image](https://user-images.githubusercontent.com/36951642/57705527-12468580-769f-11e9-9312-a06ecd36a4b4.png)
 
 #### Motion Compensation
+In ICSP Codec, motion compensation is to make prediction blocks using motion vectors. Also, the process to make differential blocks(current block - prediction block) are included in motion compensation.
 
 ### DCT Transformation & Quantization
 
