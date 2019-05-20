@@ -1,7 +1,7 @@
 ## ICSP Codec
 ### Introduction
 This is a implementation of video codec based on C/C++. <br />
-This codec is ICSP codec because I implemented this when I was working in the ICSP lab(https://icsp.hanyang.ac.kr).<br />
+This codec is ICSP codec because I implemented this codec when I was working in the ICSP lab(https://icsp.hanyang.ac.kr).<br />
 ICSP Codec has been implemented based on basic video compression theories.
 The characteristics of the ICSP codec are as follows.
 - 16x16 macro block unit process(One 16x16 macro block is divided by four 8x8 blocks in each compression process)
@@ -46,10 +46,18 @@ Simplly speaking, motion estimation is to generate a motion vector that represen
 ![image](https://user-images.githubusercontent.com/36951642/57705527-12468580-769f-11e9-9312-a06ecd36a4b4.png)
 
 #### Motion Compensation
-In ICSP Codec, motion compensation is to make prediction blocks using motion vectors. Also, the process to make differential blocks(current block - prediction block) are included in motion compensation.
+In ICSP Codec, motion compensation is to make prediction blocks using motion vectors and to make differential blocks(current block - prediction block) in results. Differential blocks are used to other encode/decode process like DCT, Quantization, entropy coding process.
 
-### DCT Transformation & Quantization
+### DCT
+Discrete Cosine Transform(DCT) decomposes a signal for time or spatial domain into frequency components such as Fourier transform.
+That is, DCT transforms the image of the spatial domain into the frequency domain. When the image is transformed by DCT, it is decomposed DC(direct current) components having a frequency of 0 and sixty-three AC(alternating current) components having a frequency.
+Since most image are composed of a large number of low frequency components and a few high frequency components, when DCT is applied to image, most of energy is concentrated in DC and a few AC components having low frequency, AC of high frequency has a relatively low energy. This phenomenon is called 'Energy compaction' which is very widely used in the video compression field. <br/>
+ICSP codec supports 8x8 block unit Discrete Cosine Transformation(DCT). A 8x8 image block is decomposed one DC(direct current) component which is having a frequency of 0 and sixty-three AC(alternating current) components having a frequency. 
+
+
 Discrete Cosine Transformation, Energy compaction, Quantity of certain 2D cosine frequency, AC/DC coefficients table, divide the coeffieient by QstepAC, QstepDC.
+
+### Quantization
 
 ### Entropy Coding
 ZigZag reordering, Huffman coding in ICSP Codec.
