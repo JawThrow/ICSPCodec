@@ -65,9 +65,14 @@ ICSP codec supports independent AC and DC component quantization(QStepAC, QStepD
 
 ![image](https://user-images.githubusercontent.com/36951642/58096758-bfc21780-7c10-11e9-8101-c59793486858.png)
 
+### ZigZag Reordering
+Zig-zag reordering arranges elements of a quantized block in certain order. The order is not just sequential order, but diagonal order like zig-zag order. please refer below figure.
 
+![image](https://user-images.githubusercontent.com/36951642/58098987-ae2f3e80-7c15-11e9-95c9-af32a976a720.png)
+
+By zig-zag reordering, a DC component and AC components with low frequency are arranged on front side and AC components with high frequency are arranged on rear side. If QStep is larger(16 or bigger than 16), most elements of high frequency have 0 or very small values, so a number of 0 values are arranged on rear side. <br/>
+In above figure case, the result of zig-zag reordering is like 61,13,12,0,11,7,0,6,0,...,1,0,0,0,0.... Most of values on rear side are 0.
 ### Entropy Coding
-ZigZag reordering, Huffman coding in ICSP Codec.
 
 ### Bit Stream Syntax
 
