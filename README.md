@@ -56,7 +56,7 @@ ICSP codec supports 8x8 block unit DCT. A 8x8 image block is decomposed by one D
 
 ![image](https://user-images.githubusercontent.com/36951642/58094372-7cb17580-7c0b-11e9-8887-5e9c36321c7a.png)
 
-When the image block of the spatial domain is transformed into the frequency domain through the DCT. Most of energy us concentrated on the DC component and the low frequency AC component, and the remaining energy is widely distributed on the high frequency AC components.
+When the image block of the spatial domain is transformed into the frequency domain through the DCT. Most of energy us concentrated on the DC component and the low frequency AC component, and the remaining energy is widely distributed on the high frequency AC components.<br/>
 the above figure is intended to explain DCT, so it is different from the exact DCT result. In fact, the image block used for DCT in the ICSP codec is a difference block and DCT result is stored as a floating type.
 
 ### Quantization
