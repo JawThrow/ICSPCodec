@@ -60,7 +60,7 @@ When the image block of the spatial domain is transformed into the frequency dom
 the above figure is intended to explain DCT, so it is different from the exact DCT result. In fact, the image block used for DCT in the ICSP codec is a difference block and DCT result is stored as a floating type.
 
 ### Quantization
-Quantization is a process of dividing a transformed block by a constant(quantization step, QStep). Through quantization, most of the AC Components which have a high frequency component have 0 value or a very small value. The more AC components with very small values, the less bits are allocated in entropy coding process, resulting in a compression efficiency increas. However, this process directly damage to image quality. The larger the QStep, the larger the loss of image quality.
+Quantization is a process of dividing a transformed block by a constant(quantization step, QStep). Through quantization, most of the AC Components which have a high frequency component have 0 value or a very small value. The more AC components with very small values, the less bits are allocated in entropy coding process, resulting in a compression efficiency increas. However, this process directly damage to image quality. The larger the QStep, the larger the loss of image quality.<br/>
 ICSP codec supports independent AC and DC component quantization(QStepAC, QStepDC). Also, ICSP codec provides 1, 8 and 16 QStep.
 
 ![image](https://user-images.githubusercontent.com/36951642/58096758-bfc21780-7c10-11e9-8101-c59793486858.png)
