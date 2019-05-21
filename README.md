@@ -32,13 +32,13 @@ ICSP Codec supports only backword prediction. That is, inter prediction blocks a
 ![image](https://user-images.githubusercontent.com/36951642/57631044-b2d27200-75d9-11e9-8997-8c8d64738c97.png)
 
 Basically, inter prediction process is to find the location of the most similar block with current block in previous frame(fn-1). Also, current blocks are in current frame(fn). in the figure above, red block is a current block in current frame. Green block is the one closest to current block among negibor blocks around red block in previous frame. ICSP Codec uses search method as 'spiral search'.
-Spiral search in ICSP Codec means that search the block by round and round the current block position like sprial per a pixel unit.
+Spiral search in ICSP codec means that search the block by round and round the current block position like sprial per a pixel unit.
 
 ![image](https://user-images.githubusercontent.com/36951642/57704034-1fae4080-769c-11e9-91ef-c10880442f18.png)
 
-I attached the above picture for conceptual understanding about spiral search. I hope there is no misunderstanding. ICSP Codec moves search block by a pixel unit and find a similar block which has minimum SAD(Sum of Absolute Difference) between current block and seach block.
+I attached the above picture for conceptual understanding about spiral search. I hope there is no misunderstanding. ICSP codec moves search block by a pixel unit and finds a similar block which has minimum SAD(Sum of Absolute Difference) between a current block and a seach block.
 
-Up to this point, it was a conceptual explanation of inter prediction. The inter prediction consists of motion estimation and motion compensation. I will briefly explain these two processes.
+Up to this point, it was a conceptual explanation of the inter prediction. The inter prediction consists of motion estimation and motion compensation. I will briefly explain these two processes.
 
 #### Motion Estimation
 Simplly speaking, motion estimation is to generate a motion vector that represents the distance between a current block position and a similar block which has the smallest SAD.
@@ -51,13 +51,17 @@ In ICSP Codec, motion compensation is to make prediction blocks using motion vec
 ### DCT
 Discrete Cosine Transform(DCT) decomposes a signal for time or spatial domain into frequency components such as Fourier transform.
 That is, DCT transforms the image of the spatial domain into the frequency domain. When the image is transformed by DCT, it is decomposed DC(direct current) components having a frequency of 0 and sixty-three AC(alternating current) components having a frequency.
-Since most image are composed of a large number of low frequency components and a few high frequency components, when DCT is applied to image, most of energy is concentrated in DC and a few AC components having low frequency, AC of high frequency has a relatively low energy. This phenomenon is called 'Energy compaction' which is very widely used in the video compression field. <br/>
-ICSP codec supports 8x8 block unit Discrete Cosine Transformation(DCT). A 8x8 image block is decomposed one DC(direct current) component which is having a frequency of 0 and sixty-three AC(alternating current) components having a frequency. 
+Since most image are composed of a large number of low frequency components and a few high frequency components, when DCT is applied to image, most of energy is concentrated in DC and just a few energy are widely spread to AC components having high frequency. This phenomenon is called 'Energy compaction' which is very widely used in the video compression field. <br/>
+ICSP codec supports 8x8 block unit DCT. A 8x8 image block is decomposed by one DC(direct current) component which is having a frequency of 0 and sixty-three AC(alternating current) components having a relatively high frequency. 
 
+![image](https://user-images.githubusercontent.com/36951642/58094372-7cb17580-7c0b-11e9-8887-5e9c36321c7a.png)
 
-Discrete Cosine Transformation, Energy compaction, Quantity of certain 2D cosine frequency, AC/DC coefficients table, divide the coeffieient by QstepAC, QstepDC.
+When the image block of the spatial domain is transformed into the frequency domain through the DCT. Most of energy us concentrated on the DC component and the low frequency AC component, and the remaining energy is widely distributed on the high frequency AC components.
+the above figure is intended to explain DCT, so it is different from the exact DCT result. In fact, the image block used for DCT in the ICSP codec is a difference block and DCT result is stored as a floating type.
 
 ### Quantization
+
+QStepAC, QStepDC
 
 ### Entropy Coding
 ZigZag reordering, Huffman coding in ICSP Codec.
