@@ -77,8 +77,12 @@ In above figure case, the result of zig-zag reordering is like 61,13,12,0,11,7,0
 In Entropy coding, The list of numbers from zig-zag reordering is converted into a bitstream. Each numbers in the list are converted into bundle of bits. The amount of bits allocated depends on the frequency of occurence of the number. In above case, a few bits are allocated to 0 because 0 is the highest number of occurrences. Conversely, many bits are allocated to other numbers such as 63, 13, 12.... If the number of 0 values are lager in the list, the size of bitstream will become smaller and smaller. ICSP codec has already determined code word(bit form) according to certain range of integers, I didn't implement huffman coding by myself. I just convert a number into determined code word according to the range to which the number has belonged.
 
 ### Bit Stream Syntax
-#### Steam Header
+#### Stream Header
+The Header of ICSP bitsream has fixed structure like below figure. The size of the header is 14 bytes.
 
+![image](https://user-images.githubusercontent.com/36951642/58179001-3f6be700-7ce2-11e9-9f06-d3dcaae833e3.png)
+
+#### Stream Body
 ### AVX Intrinsics Mode
 
 ### Contents
