@@ -70,11 +70,14 @@ Zig-zag reordering arranges elements of a quantized block in certain order. The 
 
 ![image](https://user-images.githubusercontent.com/36951642/58099869-7a551880-7c17-11e9-9c7c-f421f1591de5.png)
 
-By zig-zag reordering, a DC component and AC components with low frequency are arranged on front side and AC components with high frequency are arranged on rear side. If QStep is larger(16 or bigger than 16), most elements of high frequency have 0 or very small values, so a number of 0 values are arranged on rear side. <br/>
-In above figure case, the result of zig-zag reordering is like 61,13,12,0,11,7,0,6,0,...,1,0,0,0,0.... Most of values on rear side are 0.
+By zig-zag reordering, a DC component and AC components with low frequency are arranged on front side and AC components with high frequency are arranged on rear side. If QStep is large(16 or bigger than 16), most elements of high frequency have 0 or very small values, so a number of 0 values are arranged on rear side. <br/>
+In above figure case, the result of zig-zag reordering is like 61,13,12,0,11,7,0,6,0,...,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0... Most of values on rear side are 0. In ICSP codec, if all of AC components are 0, some unique process is applied into bitstream for compression efficiency by using AC flag. This technique will be explained in detal in Bit Steam Syntax part.
+
 ### Entropy Coding
+In Entropy coding, The list of numbers from zig-zag reordering is converted into a bitstream. Each numbers in the list are converted into bundle of bits. The amount of bits allocated depends on the frequency of occurence of the number. In above case, a few bits are allocated to 0 because 0 is the highest number of occurrences. Conversely, many bits are allocated to other numbers such as 63, 13, 12.... If the number of 0 values are lager in the list, the size of bitstream will become smaller and smaller. ICSP codec has already determined code word(bit form) according to certain range of integers, I didn't implement huffman coding by myself. I just convert a number into determined code word according to the range to which the number has belonged.
 
 ### Bit Stream Syntax
+#### Steam Header
 
 ### AVX Intrinsics Mode
 
