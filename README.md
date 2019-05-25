@@ -79,7 +79,7 @@ In Entropy coding, The list of numbers from zig-zag reordering is converted into
 #### Stream Header
 The Header of ICSP bitsream has fixed structure like below figure. The size of the header is 14 bytes.
 
-![image](https://user-images.githubusercontent.com/36951642/58179001-3f6be700-7ce2-11e9-9f06-d3dcaae833e3.png)
+![image](https://user-images.githubusercontent.com/36951642/58371106-76900180-7f49-11e9-9c61-38dfb385dd83.png)
 
 #### Stream Body
 ### AVX Intrinsics Mode
