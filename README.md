@@ -12,7 +12,6 @@ The characteristics of the ICSP codec are as follows.
 - AVX Intrinsics Parellel Processing
 - Only Supporting CIF(4:2:0)
 
-If you have any kinds of feedback and question, please contact me.
 
 ### ICSP Codec Encoding Process
 ![Encoding Proces](https://user-images.githubusercontent.com/36951642/57179748-f59a9880-6ebb-11e9-9c6d-5857f45d5545.PNG)
