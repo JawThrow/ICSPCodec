@@ -84,11 +84,11 @@ The Header of ICSP bitsream has fixed structure like below figure. The size of t
 #### Stream Body
 ##### Intra Prediction Frame Body
 
-![image](https://user-images.githubusercontent.com/36951642/58420689-ed073d80-80c8-11e9-9789-82d77908df0e.png)
+![image](https://user-images.githubusercontent.com/36951642/58421431-df52b780-80ca-11e9-8697-ef727019c443.png)
 
 ##### Inter Prediction Frame Body
 
-![image](https://user-images.githubusercontent.com/36951642/58421324-a0246680-80ca-11e9-8f94-7ce836732f36.png)
+![image](https://user-images.githubusercontent.com/36951642/58421462-f4c7e180-80ca-11e9-93d3-3ac43ef62085.png)
 
 ### AVX Intrinsics Mode
 
