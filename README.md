@@ -91,7 +91,8 @@ The Header of ICSP bitsream has fixed structure like below figure. The size of t
 ![image](https://user-images.githubusercontent.com/36951642/58421530-1e810880-80cb-11e9-9841-d00d27584c01.png)
 
 ### AVX Intrinsics Mode
-
+- comparison in one frame average, full frame average
+- 
 ### Contents
 | Folder | description |
 |---|---|
