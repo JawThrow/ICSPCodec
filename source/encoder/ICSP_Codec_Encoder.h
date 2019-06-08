@@ -22,7 +22,7 @@ union __mmMIXED
 
 struct Block8d { double block[8][8]; };
 struct Block8i { int block[8][8]; };
-struct Block8u {	unsigned char block[8][8];};
+struct Block8u { unsigned char block[8][8];};
 struct Block8s { signed char block[8][8]; };
 struct Block8f { float block[8][8]; };
 
