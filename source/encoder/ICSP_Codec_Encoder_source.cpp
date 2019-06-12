@@ -5,7 +5,7 @@
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
 
-#define SIMD true
+//#define SIMD true
 
 #ifdef SIMD
 #define SIMDGLOBAL true
