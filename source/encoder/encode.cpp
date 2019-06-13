@@ -17,7 +17,6 @@ int main(int argc, char *argv[])
 	IcspCodec icspCodec;
 	icspCodec.init(nframes, imgfname, 352, 288, QPDC, QPAC);
 	icspCodec.encoding(intraPeriod);
-	//icspCodec.encodingForMeasurement(intraPeriod, AVXFlag);
 	
 	return 0;
 }
