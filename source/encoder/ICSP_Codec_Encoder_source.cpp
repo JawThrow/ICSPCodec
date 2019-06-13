@@ -253,8 +253,8 @@ int splitBlocks(IcspCodec &icC, int blocksize1, int blocksize2)
 /* intra prediction function */
 int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 {
-	if (gSIMDFlag);
-		//gfp = fopen("Quan_time_check_per_frame_vector.txt", "wt");
+	if (gSIMDFlag); 	//gfp = fopen("Quan_time_check_per_frame_vector.txt", "wt");
+	else;				//gfp = fopen("Quan_time_check_per_frame_scalar.txt", "wt");
 
 	int totalblck = frames->nblocks16;
 	int nblck8 = frames->nblocks8;
@@ -312,9 +312,9 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			/* 할당 구간 끝 */
 			for(int numOfblck8=0; numOfblck8<nblck8; numOfblck8++)
 			{
-				if (gSIMDFlag);//TimeCheck::TimeCheckStart();
+				//TimeCheck::TimeCheckStart();
 				DPCM_pix_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth);
-				if (gSIMDFlag);//DPCM_Time_PerFrame += TimeCheck::TimeCheckEnd();
+				//DPCM_Time_PerFrame += TimeCheck::TimeCheckEnd();
 				DCT_block(bd, numOfblck8, blocksize2, INTRA);
 				DPCM_DC_block(frm, numOfblck16, numOfblck8, blocksize2, splitWidth, INTRA);
 				Quantization_block(bd, numOfblck8, blocksize2, QstepDC, QstepAC, INTRA);
@@ -335,12 +335,10 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 			free(bd.intraInverseDCTblck);
 			free(bd.originalblck16);
 		}
-		if (gSIMDFlag)
-		{
-			/*DPCM_Time_PerFrame /= (totalblck * nblck8);
-			fprintf(gfp, "%lf\n", DPCM_Time_PerFrame);
-			DPCM_Time_PerFrame = 0;*/;
-		}
+
+		/*DPCM_Time_PerFrame /= (totalblck * nblck8);
+		fprintf(gfp, "%lf\n", DPCM_Time_PerFrame);
+		DPCM_Time_PerFrame = 0;*/
 
 
 		intraImgReconstruct(frm);
@@ -2020,11 +2018,9 @@ void intraImgReconstruct(FrameData &frm)
 /* inter prediction function */
 int interPrediction(FrameData& cntFrm, FrameData& prevFrm, int QstepDC, int QstepAC)
 {
-#if SIMD
-	//gfp = fopen("Inter_MotionEstimation_vector.txt", "at");
-#else
-	//gfp = fopen("Inter_MotionEstimation_scalar.txt", "at");
-#endif
+	if (gSIMDFlag); //gfp = fopen("Inter_MotionEstimation_vector.txt", "at");
+	else;   		//gfp = fopen("Inter_MotionEstimation_scalar.txt", "at");
+
 	int totalblck = cntFrm.nblocks16;
 	int nblock8 = cntFrm.nblocks8;
 	int blocksize1 = cntFrm.blocks->blocksize1;
@@ -2032,6 +2028,7 @@ int interPrediction(FrameData& cntFrm, FrameData& prevFrm, int QstepDC, int Qste
 	int splitWidth = cntFrm.splitWidth;
 	
 	double MotionEstimation_PerFrame = 0;
+
 
 	//TimeCheck::TimeCheckStart();
 	motionEstimation(cntFrm, prevFrm);
@@ -2139,7 +2136,6 @@ void motionEstimation(FrameData& cntFrm, FrameData& prevFrm)
 	int cnt=0;
 	int nSearch = 64; // spiral search 비교회수
 
-	//totalblck=1;
 	for(int nblck=0; nblck<totalblck && SADflag; nblck++)
 	{	
 		Block16u *currentblck = cntFrm.blocks[nblck].originalblck16;
@@ -2311,108 +2307,73 @@ void get16block(unsigned char* img, unsigned char dst[][16], int y0, int x0, int
 {
 	// padimg size - width: 382 height: 320
 	// extract a 16x16 block at (x0, y0) coordinate
-#if SIMD
-	int nInterLoop = blocksize / 2; // nInterLoop : 8
-	for (int y = 0; y < nInterLoop; y++)
+	if (gSIMDFlag)
 	{
-		_mm256_storeu_si256((__m256i*)(dst + (y * 2)), _mm256_loadu2_m128i((__m128i*)(img + (((y * 2 + 1)*width + y0*width) + x0)), (__m128i*)(img + (((y * 2)*width + y0*width) + x0))));
-	}		
-#else
-	for(int y=0; y<blocksize; y++)
-	{
-		for(int x=0; x<blocksize; x++)
+		int nInterLoop = blocksize / 2; // nInterLoop : 8
+		for (int y = 0; y < nInterLoop; y++)
 		{
-			dst[y][x] = img[(y*width+y0*width)+x+x0];
+			_mm256_storeu_si256((__m256i*)(dst + (y * 2)), _mm256_loadu2_m128i((__m128i*)(img + (((y * 2 + 1)*width + y0*width) + x0)), (__m128i*)(img + (((y * 2)*width + y0*width) + x0))));
 		}
 	}
-#endif
+	else
+	{
+		for (int y = 0; y < blocksize; y++)
+		{
+			for (int x = 0; x < blocksize; x++)
+			{
+				dst[y][x] = img[(y*width + y0*width) + x + x0];
+			}
+		}
+	}
 }
 int getSAD(unsigned char currentblck[][16], unsigned char spiralblck[][16], int blocksize)
 {
 	int SAD = 0;
-#if SIMD
-#if SIMDGLOBAL
-	int SAD_SIMD = 0;
-	__mmMIXED mixedRef;
-	__mmMIXED mixedSrc;
 
-	int nInterLoop = blocksize / 2; // 8번
-	for (int y = 0; y < nInterLoop; y++)
+	if (gSIMDFlag)
 	{
-		mixedSrc.blck256 = _mm256_loadu_si256((__m256i*)currentblck[y*2]);
-		mixedRef.blck256 = _mm256_loadu_si256((__m256i*)spiralblck[y*2]);
+		int SAD_SIMD = 0;
+		__mmMIXED mixedRef;
+		__mmMIXED mixedSrc;
 
-		gARV->currentRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[0]);
-		gARV->predictionRow	= _mm256_cvtepu8_epi16(mixedRef.blck128[0]);
-		gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
-		gARV->subRow = _mm256_abs_epi16(gARV->subRow);
-		_mm256_storeu_si256(gARV->resRows+(y * 2), gARV->subRow);
-
-		gARV->currentRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[1]);
-		gARV->predictionRow = _mm256_cvtepu8_epi16(mixedRef.blck128[1]);
-		gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
-		gARV->subRow = _mm256_abs_epi16(gARV->subRow);
-		_mm256_storeu_si256(gARV->resRows+(y * 2 + 1), gARV->subRow);
-
-		gARV->sumRow = _mm256_hadd_epi16(*(gARV->resRows + (y * 2)), *(gARV->resRows + (y * 2 + 1)));
-		gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-		gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-		gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-		SAD_SIMD += _mm_extract_epi16(*(__m128i*)&gARV->sumRow, 0) + _mm_extract_epi16(*((__m128i*)&gARV->sumRow + 1), 0);
-	}
-
-	SAD = SAD_SIMD;
-
-#else
-	int SAD_SIMD = 0;
-	__m256i spiralRow;
-	__m256i crntRow;
-	__m256i subRow;
-	__m256i sumRow;
-	__m256i resRows[16];
-	__m256i tempRows[2];
-	__mmMIXED mixedRef;
-	__mmMIXED mixedSrc;
-
-	int nInterLoop = blocksize / 2; // 8번
-	for (int i = 0; i < nInterLoop; i++)
-	{
-		mixedSrc.blck256 = _mm256_loadu_si256((__m256i*)currentblck[i * 2]);
-		mixedRef.blck256 = _mm256_loadu_si256((__m256i*)spiralblck[i * 2]);
-
-		crntRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[0]);
-		spiralRow = _mm256_cvtepu8_epi16(mixedRef.blck128[0]);
-		subRow = _mm256_sub_epi16(crntRow, spiralRow);
-		subRow = _mm256_abs_epi16(subRow);
-		_mm256_storeu_si256(resRows + (i * 2), subRow);
-
-		crntRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[1]);
-		spiralRow = _mm256_cvtepu8_epi16(mixedRef.blck128[1]);
-		subRow = _mm256_sub_epi16(crntRow, spiralRow);
-		subRow = _mm256_abs_epi16(subRow);
-		_mm256_storeu_si256(resRows + (i * 2 + 1), subRow);
-	}
-
-	__m256i SADRows[8];
-	for (int i = 0; i < nInterLoop; i++)
-		SADRows[i] = _mm256_hadd_epi16(resRows[i * 2], resRows[i * 2 + 1]);
-
-	for (int i = 0; i < nInterLoop; i++)
-		for (int j = 0; j < blocksize; j++)
-			SAD_SIMD += SADRows[i].m256i_u16[j];
-
-	SAD = SAD_SIMD;
-#endif
-#else
-	// 16 x 16
-	for(int y=0; y<blocksize; y++)
-	{
-		for(int x=0; x<blocksize; x++)
+		int nInterLoop = blocksize / 2; // 8번
+		for (int y = 0; y < nInterLoop; y++)
 		{
-			SAD += abs((int)currentblck[y][x] - (int)spiralblck[y][x]);
+			mixedSrc.blck256 = _mm256_loadu_si256((__m256i*)currentblck[y * 2]);
+			mixedRef.blck256 = _mm256_loadu_si256((__m256i*)spiralblck[y * 2]);
+
+			gARV->currentRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[0]);
+			gARV->predictionRow = _mm256_cvtepu8_epi16(mixedRef.blck128[0]);
+			gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
+			gARV->subRow = _mm256_abs_epi16(gARV->subRow);
+			_mm256_storeu_si256(gARV->resRows + (y * 2), gARV->subRow);
+
+			gARV->currentRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[1]);
+			gARV->predictionRow = _mm256_cvtepu8_epi16(mixedRef.blck128[1]);
+			gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
+			gARV->subRow = _mm256_abs_epi16(gARV->subRow);
+			_mm256_storeu_si256(gARV->resRows + (y * 2 + 1), gARV->subRow);
+
+			gARV->sumRow = _mm256_hadd_epi16(*(gARV->resRows + (y * 2)), *(gARV->resRows + (y * 2 + 1)));
+			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
+			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
+			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
+			SAD_SIMD += _mm_extract_epi16(*(__m128i*)&gARV->sumRow, 0) + _mm_extract_epi16(*((__m128i*)&gARV->sumRow + 1), 0);
+		}
+
+		SAD = SAD_SIMD;
+	}
+	else
+	{
+		// 16 x 16
+		for (int y = 0; y < blocksize; y++)
+		{
+			for (int x = 0; x < blocksize; x++)
+			{
+				SAD += abs((int)currentblck[y][x] - (int)spiralblck[y][x]);
+			}
 		}
 	}
-#endif
 	//fprintf(gfp, "%d\n", SAD);
 	return SAD;
 }
