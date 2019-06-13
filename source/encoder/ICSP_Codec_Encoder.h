@@ -192,6 +192,7 @@ public:
 public:
 	void init(int nframe, char* imgfname, int width, int height, int QstepDC, int QstepAC);
 	void encoding(int intraPeriod);
+	void encodingForMeasurement(int intraPeriod, bool SIMDFlag);
 	//int decoding();
 	~IcspCodec(); 
 };
@@ -354,6 +355,39 @@ inline void IcspCodec::encoding(int intraPeriod)
 	}
 	
 	double entime = (double)(clock()-t)/CLOCKS_PER_SEC;	
+	char outputtxt[256];
+	sprintf(outputtxt, "ending time: %.4lf(s) QPDC: %d  QPAC: %d Period: %d\n", entime, QstepDC, QstepAC, intraPeriod);
+	FILE* fp = fopen("experimental_Result.txt", "at");
+	fprintf(fp, "%s", outputtxt);
+	fclose(fp);
+}
+
+inline void IcspCodec::encodingForMeasurement(int intraPeriod, bool SIMDFlag)
+{
+	clock_t t = clock();
+
+	if (intraPeriod == ALL_INTRA)
+	{
+		// all intra predtion
+		allintraPrediction(frames, YCbCr.nframe, QstepDC, QstepAC);
+		makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTRA);
+		checkResultFrames(frames, YCbCr.width, YCbCr.height, YCbCr.nframe, INTRA, SAVE_YUV);
+	}
+	else
+	{
+		// hybrid prediction
+		for (int n = 0; n<YCbCr.nframe; n++)
+		{
+			if (n%intraPeriod == 0)
+				intraPrediction(frames[n], QstepDC, QstepAC);
+			else
+				interPrediction(frames[n], frames[n - 1], QstepDC, QstepAC);
+		}
+		makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTER);
+		checkResultFrames(frames, YCbCr.width, YCbCr.height, YCbCr.nframe, INTER, SAVE_YUV);
+	}
+
+	double entime = (double)(clock() - t) / CLOCKS_PER_SEC;
 	char outputtxt[256];
 	sprintf(outputtxt, "ending time: %.4lf(s) QPDC: %d  QPAC: %d Period: %d\n", entime, QstepDC, QstepAC, intraPeriod);
 	FILE* fp = fopen("experimental_Result.txt", "at");
