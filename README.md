@@ -91,8 +91,25 @@ The Header of ICSP bitsream has fixed structure like below figure. The size of t
 ![image](https://user-images.githubusercontent.com/36951642/58421530-1e810880-80cb-11e9-9841-d00d27584c01.png)
 
 ### AVX Intrinsics Mode
-- comparison in one frame average, full frame average
-- 
+#### All Intra Prediction Mode
+| Sequences | Scalar Encoding Time(Sec) | Vector Encoding Time(sec)| Encoding Time Reduction Rate(%)|
+|---|:---:|:---:|:---:|
+|akiyo|13.65|12.12|89%|
+|children|16.9|12.91|76%|
+|coastguard|13.98|12.36|88%|
+|container|14.84|11.38|77%|
+|football|5.05|4.04|80%|
+|foreman|17.21|12.42|72%|
+|hall monitor|14.31|12.83|90%|
+|mobile|15.3|12.01|79%|
+|mother_daughter|13.72|12.01|88%|
+|news|14.26|11.41|80%|
+|stefan|16.35|13.06|80%|
+|table|13.62|11.33|83%|
+|**Average**|x|x|**82%**|
+
+
+
 ### Contents
 | Folder | description |
 |---|---|
