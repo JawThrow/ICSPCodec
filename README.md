@@ -109,6 +109,22 @@ The Header of ICSP bitsream has fixed structure like below figure. The size of t
 |**Average**|x|x|**82%**|
 
 
+#### Inter/Intra Hybrid Prediction(intra period : 10)
+| Sequences | Scalar Encoding Time(Sec) | Vector Encoding Time(sec)| Encoding Time Reduction Rate(%)|
+|---|:---:|:---:|:---:|
+|akiyo|30.52|13.71|45%|
+|children|25.9|11.27|44%|
+|coastguard|30.71|12.51|41%|
+|container|28.58|13.31|47%|
+|football|9.59|4.4|46%|
+|foreman|29.33|11.94|41%|
+|hall monitor|30.53|12.31|40%|
+|mobile|29.08|12.36|42%|
+|mother_daughter|30.95|12.36|40%|
+|news|26.34|11.43|43%|
+|stefan|29.04|13.09|45%|
+|table|28.51|12.81|45%|
+|**Average**|x|x|**43%**|
 
 ### Contents
 | Folder | description |
