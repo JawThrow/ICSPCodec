@@ -97,7 +97,7 @@ Since I didn't familiar with SIMD yet, There may be some unskillful logic and co
 However, This conversion significantly shortened the computational complexity in similar quality.
 I will describe detail comparison result in following chapter.
 
-### Operation Speed Comparison 
+### Computational Complexity Comparison 
 #### All Intra Prediction Mode
 | Sequences | Scalar Encoding Time(Sec) | Vector Encoding Time(sec)| Encoding Time Reduction Rate(%)|
 |---|:---:|:---:|:---:|
