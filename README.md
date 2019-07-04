@@ -90,7 +90,14 @@ The Header of ICSP bitsream has fixed structure like below figure. The size of t
 
 ![image](https://user-images.githubusercontent.com/36951642/58421530-1e810880-80cb-11e9-9841-d00d27584c01.png)
 
-### AVX Intrinsics Mode
+### Vectorization Mode(SIMD, AVX Intrinsics)
+ICSP Codec have been basically implemented by pixel unit process(Scalar process). 
+Recently, I converted this pixel unit process into vectorization process using AVX Intrinsics fucntions.
+Since I didn't familiar with SIMD yet, There may be some unskillful logic and code. 
+However, This conversion significantly shortened the computational complexity in similar quality.
+I will describe detail comparison result in following chapter.
+
+### Operation Speed Comparison 
 #### All Intra Prediction Mode
 | Sequences | Scalar Encoding Time(Sec) | Vector Encoding Time(sec)| Encoding Time Reduction Rate(%)|
 |---|:---:|:---:|:---:|
@@ -126,6 +133,7 @@ The Header of ICSP bitsream has fixed structure like below figure. The size of t
 |table|28.51|12.81|45%|
 |**Average**|x|x|**43%**|
 
+I will upload comparison of operation speed in each encoding process in details.
 ### Contents
 | Folder | description |
 |---|---|
