@@ -96,6 +96,7 @@ Recently, I converted this pixel unit process into vectorization process using A
 Since I didn't familiar with SIMD yet, There may be some unskillful logic and code. 
 However, This conversion significantly shortened the computational complexity in similar quality.
 I will describe detail comparison result in following chapter.
+![image](https://user-images.githubusercontent.com/36951642/67497244-ab4ee300-f6b8-11e9-8687-01cb371a0d10.png)
 
 ### Computational Complexity Comparison 
 #### All Intra Prediction Mode
