@@ -6614,7 +6614,8 @@ void checkResultFrames(FrameData* frm, int width, int height, int nframe, int pr
 
 
 	char output_fname[256];
-	sprintf(output_fname, "%s\\%s%s", CIF_path, output_pred_name, output_ch_name);
+	//sprintf(output_fname, "%s\\%s%s", CIF_path, output_pred_name, output_ch_name);
+	sprintf(output_fname, "output\\%s%s", output_pred_name, output_ch_name);
 
 	output_fp = fopen(output_fname, "wb");
 	if(output_fp==NULL)

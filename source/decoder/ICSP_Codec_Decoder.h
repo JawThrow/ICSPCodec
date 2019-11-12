@@ -238,7 +238,7 @@ inline void IcspCodec::init(char* binfname, int nframes)
 {
 	
 	char temp[256];
-	sprintf(temp, "data\\%s", binfname);
+	sprintf(temp, "output\\%s", binfname);
 
 	FILE* fp = fopen(temp, "rb");
 	if(fp==NULL)
@@ -320,7 +320,7 @@ inline void IcspCodec::decoding(char *imgfname)
 	double val=0;
 	unsigned char* origimg = (unsigned char*)malloc(sizeof(unsigned char)*width*height);
 	char temp[256];
-	sprintf(temp, "..\\CIF(352x288)\\%s", imgfname);
+	sprintf(temp, "data\\%s", imgfname);
 	FILE* imgfp = fopen(temp, "rb");
 	if(imgfp == NULL)
 	{
@@ -348,7 +348,7 @@ inline void IcspCodec::decoding(char *imgfname)
 	psnr /= (double)nframes;
 	char outputtxt[256];
 	sprintf(outputtxt, "decoding time: %.4lf(s) PSNR: %.4lf QPDC: %d  QPAC: %d Period: %d\n", detime, psnr, QstepDC, QstepAC, intraPeriod);
-	FILE* fp = fopen("experimental_Result.txt", "at");
+	FILE* fp = fopen("experimental_Result_Decoding.txt", "at");
 	fprintf(fp, "%s", outputtxt);
 
 	fclose(fp);
