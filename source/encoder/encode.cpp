@@ -14,6 +14,16 @@ int main(int argc, char *argv[])
 	int intraPeriod = atoi(argv[5]);
 	bool AVXFlag = atoi(argv[6]);
 	gSIMDFlag = AVXFlag;
+
+	// split sequence name for saving compressed output
+	int idx = 0;
+	char* p = imgfname;
+	while (*p++ != '_')
+		idx++;
+	
+	memcpy(filename, imgfname, idx);
+	filename[idx] = 0;
+
 	IcspCodec icspCodec;
 	icspCodec.init(nframes, imgfname, 352, 288, QPDC, QPAC);
 	icspCodec.encoding(intraPeriod);
