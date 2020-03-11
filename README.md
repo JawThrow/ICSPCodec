@@ -1,7 +1,7 @@
 ## ICSP Codec
 ### Introduction
 This is a implementation of video codec based on C/C++. <br />
-This codec is ICSP codec because I implemented this codec when I was working in the ICSP lab(https://icsp.hanyang.ac.kr).<br />
+This codec is ICSP codec because I implemented this codec when I was working in the ICSP lab(http://icsp.hanyang.ac.kr).<br />
 ICSP Codec has been implemented based on basic video compression theories.
 The characteristics of the ICSP codec are as follows.
 - 16x16 macro block unit process(One 16x16 macro block is divided by four 8x8 blocks in each compression process)
