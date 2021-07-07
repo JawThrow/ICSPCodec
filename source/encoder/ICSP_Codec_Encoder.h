@@ -1,10 +1,17 @@
 #pragma once
 #include <iostream>
+#include <math.h>
+#include <stdlib.h>
+#include <memory.h>
 #include <time.h>
-#include <windows.h>
+#include <limits.h>
 #include <immintrin.h>
 #include <iomanip>
 using namespace std;
+
+#ifdef WIN_MODE
+#include <windows.h>
+#endif
 
 #define INTRA 0
 #define INTER 1
@@ -33,7 +40,7 @@ struct Block16s { signed char block[16][16]; };
 struct Block16f { float block[16][16]; };
 struct MotionVector { int x,y;};
 
-typedef struct __YCBCR
+typedef struct
 {
 	int nframe;
 	int width;
@@ -42,8 +49,9 @@ typedef struct __YCBCR
 	unsigned char* Ys;
 	unsigned char* Cbs;
 	unsigned char* Crs;	
-}YCbCr;
-typedef struct __BLOCKDATA
+}YCbCr_t;
+
+typedef struct 
 {
 	int blocksize1;
 	int blocksize2;
@@ -78,7 +86,7 @@ typedef struct __BLOCKDATA
 	int numOfBlock16;
 }BlockData;
 
-typedef struct __CBCRBLOCKDATA
+typedef struct
 {
 	int blocksize;
 	Block8u *originalblck8;
@@ -98,16 +106,17 @@ typedef struct __CBCRBLOCKDATA
 	Block8i *interInverseQuanblck;
 	int *interReorderedblck;
 }CBlockData;
-typedef struct __FRAMEDATA
+
+typedef struct
 {
-	unsigned char *Y;	// Y  ÇÁ·¹ÀÓ ÇÑÀå; ³ªÁß¿¡ Á¦°ÅÇØµµ µÇ°Ú´Âµ¥?
-	unsigned char *Cb;	// Cb ÇÁ·¹ÀÓ ÇÑÀå; ³ªÁß¿¡ Á¦°ÅÇØµµ µÇ°Ú´Âµ¥?
-	unsigned char *Cr;	// Cr ÇÁ·¹ÀÓ ÇÑÀå; ³ªÁß¿¡ Á¦°ÅÇØµµ µÇ°Ú´Âµ¥?
-	BlockData *blocks;	// ÇÑ ÇÁ·¹ÀÓ¿¡ ´ëÇÑ ºí·Ï Á¤º¸; ±¸Á¶Ã¼ ¹è¿­·Î »ý¼º
+	unsigned char *Y;	// Y  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½; ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ ï¿½Ç°Ú´Âµï¿½?
+	unsigned char *Cb;	// Cb ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½; ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ ï¿½Ç°Ú´Âµï¿½?
+	unsigned char *Cr;	// Cr ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½; ï¿½ï¿½ï¿½ß¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ ï¿½Ç°Ú´Âµï¿½?
+	BlockData *blocks;	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½; ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½è¿­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	CBlockData *Cbblocks;
 	CBlockData *Crblocks;
 
-	int nblocks16;		// ´Ù¸¥±¸Á¶Ã¼·Î À§Ä¡¹Ù²ð¼ö ÀÖÀ½
+	int nblocks16;		// ï¿½Ù¸ï¿½ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½Ù²ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	int nblocks8;
 	int splitWidth;
 	int splitHeight;
@@ -119,14 +128,14 @@ typedef struct __FRAMEDATA
 	int CbCrSplitHeight;
 	int totalcbcrblck;
 
-	unsigned char *reconstructedY;	// ÇöÀç ÇÁ·¹ÀÓÀ» º¹¿øÇÏ°Å³ª »ç¿ëÇÏ°í ³ª¸é ÀÌÀü¿¡ º¹¿øµÇ¾ú´ø ÇÁ·¹ÀÓÀ» free ÇØµµµÉ °Í
+	unsigned char *reconstructedY;	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°Å³ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ free ï¿½Øµï¿½ï¿½ï¿½ ï¿½ï¿½
 	unsigned char *reconstructedCb;
 	unsigned char *reconstructedCr;
 
 }FrameData;
 
 
-typedef struct __DBLOCKDATA
+typedef struct
 {
 	int blocksize1;
 	int blocksize2;
@@ -136,7 +145,7 @@ typedef struct __DBLOCKDATA
 	Block8i **intraInverseQuanblck;
 	Block8d **intraInverseDCTblck;
 	Block16i *intraInverseErrblck16;
-	Block16u *intraRestructedblck16; // encoding ÇÒ¶§´Â Æ÷ÀÎÅÍ°¡ ¾Æ´Ô
+	Block16u *intraRestructedblck16; // encoding ï¿½Ò¶ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í°ï¿½ ï¿½Æ´ï¿½
 	Block8u **intraRestructedblck8;
 
 	MotionVector Reconstructedmv;
@@ -146,7 +155,7 @@ typedef struct __DBLOCKDATA
 }DBlockData;
 
 
-typedef struct __DFRAMEDATA
+typedef struct
 {
 	DBlockData *blocks;
 	
@@ -184,8 +193,8 @@ struct header
 class IcspCodec
 {
 public:
-	YCbCr YCbCr;
-	FrameData *frames; // ÇÁ·¹ÀÓ ¹è¿­; °¢ ÇÁ·¹ÀÓÀ» ¹è¿­¿¡ ÇÏ³ª¾¿ ÀúÀå; ±¸Á¶Ã¼ ¹è¿­
+	YCbCr_t YCbCr;
+	FrameData *frames; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½è¿­; ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½è¿­ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½; ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½è¿­
 	int QstepDC;	// only 1 or 8 or 16;
 	int QstepAC;	// only 1 or 16;
 
@@ -364,7 +373,7 @@ inline void IcspCodec::encoding(int intraPeriod)
 inline IcspCodec::~IcspCodec()
 {
 	// YCbCr unsigned pointer free; frames free; frames -> blocks free
-	// YCbCr¿¡ ºÒ·¯¿Â ÀüÃ¼ ¿µ»ó free
+	// YCbCrï¿½ï¿½ ï¿½Ò·ï¿½ï¿½ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ free
 	
 	/*free(YCbCr.Ys);
 	free(YCbCr.Cbs);

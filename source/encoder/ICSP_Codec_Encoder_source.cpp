@@ -10,6 +10,7 @@ FILE* gfp;
 char filename[256];
 AVXRowsforVectorization *gARV = new AVXRowsforVectorization();
 
+#ifdef WIN_MODE
 /* benchmark function */
 namespace TimeCheck
 {
@@ -38,6 +39,7 @@ namespace TimeCheck
 		return elapsedTime;
 	}
 }
+#endif
 
 /* initiation function*/
 int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe,  const int width, const int height)
