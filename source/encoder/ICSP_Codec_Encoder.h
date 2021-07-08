@@ -362,12 +362,12 @@ inline void IcspCodec::encoding(int intraPeriod)
 		checkResultFrames(frames, YCbCr.width, YCbCr.height,YCbCr.nframe, INTER, SAVE_YUV);
 	}
 	
-	double entime = (double)(clock()-t)/CLOCKS_PER_SEC;	
-	char outputtxt[256];
-	sprintf(outputtxt, "ending time: %.4lf(s) QPDC: %d  QPAC: %d Period: %d\n", entime, QstepDC, QstepAC, intraPeriod);
-	FILE* fp = fopen("experimental_Result_Encoding.txt", "at");
-	fprintf(fp, "%s", outputtxt);
-	fclose(fp);
+	// double entime = (double)(clock()-t)/CLOCKS_PER_SEC;	
+	// char outputtxt[256];
+	// sprintf(outputtxt, "ending time: %.4lf(s) QPDC: %d  QPAC: %d Period: %d\n", entime, QstepDC, QstepAC, intraPeriod);
+	// FILE* fp = fopen("experimental_Result_Encoding.txt", "at");
+	// fprintf(fp, "%s", outputtxt);
+	// fclose(fp);
 }
 
 inline IcspCodec::~IcspCodec()

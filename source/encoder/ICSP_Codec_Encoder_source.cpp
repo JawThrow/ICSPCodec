@@ -4,11 +4,10 @@
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
 
-bool gSIMDFlag = false;
+
 
 FILE* gfp;
 char filename[256];
-AVXRowsforVectorization *gARV = new AVXRowsforVectorization();
 
 #ifdef WIN_MODE
 /* benchmark function */
@@ -248,9 +247,6 @@ int splitBlocks(IcspCodec &icC, int blocksize1, int blocksize2)
 /* intra prediction function */
 int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 {
-	if (gSIMDFlag); 	//gfp = fopen("Quan_time_check_per_frame_vector.txt", "wt");
-	else;				//gfp = fopen("Quan_time_check_per_frame_scalar.txt", "wt");
-
 	int totalblck = frames->nblocks16;
 	int nblck8 = frames->nblocks8;
 	int blocksize1 = frames->blocks->blocksize1;
@@ -449,145 +445,61 @@ void intraPrediction(FrameData& frm, int QstepDC, int QstepAC)
 int DPCM_pix_0(unsigned char upper[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // vertical; �ϴ� ù��° �ι�° �Ķ������ ���̸� 8�� static�ϰ� ����
 {
 	int SAE=0;	
-	if(gSIMDFlag)
-	{
-		int SAE_SIMD = 0;
-		short errtemp[8][8];
-		__m256i tempRow1;
-		__m256i tempRow2;
-		if (upper == NULL)
-		{
-			gARV->predictionRow = _mm256_set1_epi16(128);
-		}
-		else
-		{
-			__m256i tempPredLo = _mm256_cvtepu8_epi16(*(__m128i*)upper[blocksize - 1]);
-			gARV->predictionRow = _mm256_set_m128i(*(__m128i*)&tempPredLo, *(__m128i*)&tempPredLo);
-		}
 	
-		for (int y = 0; y < 2; y++)
+	if(upper==NULL)
+	{
+		for(int y=0; y<blocksize; y++)
 		{
-			gARV->_mixed.blck256 = _mm256_loadu_si256((__m256i*)(current + (y * 4)));
-			gARV->currentRow = _mm256_cvtepu8_epi16(gARV->_mixed.blck128[0]);
-			gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
-			gARV->absRow = _mm256_abs_epi16(gARV->subRow);
-			_mm256_storeu_si256(gARV->resRows + (y * 2), gARV->absRow);
-			_mm256_storeu_si256((__m256i*)err_temp[4 * y], _mm256_cvtepi16_epi32(*(__m128i*)&gARV->subRow));
-			_mm256_storeu_si256((__m256i*)err_temp[4 * y + 1], _mm256_cvtepi16_epi32(*((__m128i*)&gARV->subRow + 1)));
-
-			gARV->currentRow = _mm256_cvtepu8_epi16(gARV->_mixed.blck128[1]);
-			gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
-			gARV->absRow = _mm256_abs_epi16(gARV->subRow);
-			_mm256_storeu_si256(gARV->resRows + (y * 2 + 1), gARV->absRow);
-			_mm256_storeu_si256((__m256i*)err_temp[4 * y + 2], _mm256_cvtepi16_epi32(*(__m128i*)&gARV->subRow));
-			_mm256_storeu_si256((__m256i*)err_temp[4 * y + 3], _mm256_cvtepi16_epi32(*((__m128i*)&gARV->subRow + 1)));
-
-			gARV->sumRow = _mm256_hadd_epi16(*(gARV->resRows + (y * 2)), *(gARV->resRows + (y * 2 + 1)));
-			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-			SAE_SIMD += _mm_extract_epi16(*(__m128i*)&gARV->sumRow, 0) + _mm_extract_epi16(*((__m128i*)&gARV->sumRow + 1), 0);
+			for(int x=0; x<blocksize; x++)
+			{
+				err_temp[y][x] = (int)current[y][x] - 128;
+				SAE += abs(err_temp[y][x]);
+			}
 		}
-		SAE = SAE_SIMD;
 	}
 	else
 	{
-		if(upper==NULL)
+		for(int y=0; y<blocksize; y++)
 		{
-			for(int y=0; y<blocksize; y++)
+			for(int x=0; x<blocksize; x++)
 			{
-				for(int x=0; x<blocksize; x++)
-				{
-					err_temp[y][x] = (int)current[y][x] - 128;
-					SAE += abs(err_temp[y][x]);
-				}
-			}
-		}
-		else
-		{
-			for(int y=0; y<blocksize; y++)
-			{
-				for(int x=0; x<blocksize; x++)
-				{
-					err_temp[y][x] = (int)(current[y][x] - (int)upper[blocksize-1][x]);
-					SAE += abs(err_temp[y][x]);
-				}
+				err_temp[y][x] = (int)(current[y][x] - (int)upper[blocksize-1][x]);
+				SAE += abs(err_temp[y][x]);
 			}
 		}
 	}
+	
 	return SAE;
 }
 int DPCM_pix_1(unsigned char left[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // horizontal; �ϴ� ù��° �ι�° �Ķ������ ���̸� 8�� static�ϰ� ����
 {
 	int SAE = 0;
 
-	if (gSIMDFlag)
+	
+	
+	if (left == NULL)
 	{
-		int SAE_SIMD = 0;
-		short errtemp[8][8] = { 0, };
-		if (left == NULL)
+		for (int y = 0; y < blocksize; y++)
 		{
-			for (int i = 0; i < blocksize; i++)
-				gARV->PredMixed[i / 2].blck128[i % 2] = _mm_set1_epi16(128);
+			for (int x = 0; x < blocksize; x++)
+			{
+				err_temp[y][x] = (int)current[y][x] - 128;
+				SAE += abs(err_temp[y][x]);
+			}
 		}
-		else
-		{
-			for (int i = 0; i < blocksize; i++)
-				gARV->PredMixed[i / 2].blck128[i % 2] = _mm_set1_epi16((short)left[i][blocksize - 1]);
-		}
-
-		for (int y = 0; y < 2; y++)
-		{
-			gARV->_mixed.blck256 = _mm256_loadu_si256((__m256i*)(current + (y * 4)));
-			gARV->predictionRow = _mm256_set_m128i(gARV->PredMixed[y * 2].blck128[1], gARV->PredMixed[y * 2].blck128[0]);
-			gARV->currentRow = _mm256_cvtepu8_epi16(gARV->_mixed.blck128[0]);
-			gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
-			gARV->absRow = _mm256_abs_epi16(gARV->subRow);
-			_mm256_storeu_si256(gARV->resRows + (y * 2), gARV->absRow);
-			_mm256_storeu_si256((__m256i*)err_temp[4 * y], _mm256_cvtepi16_epi32(*(__m128i*)&gARV->subRow));
-			_mm256_storeu_si256((__m256i*)err_temp[4 * y + 1], _mm256_cvtepi16_epi32(*((__m128i*)&gARV->subRow + 1)));
-
-			gARV->predictionRow = _mm256_set_m128i(gARV->PredMixed[2 * y + 1].blck128[1], gARV->PredMixed[2 * y + 1].blck128[0]);
-			gARV->currentRow = _mm256_cvtepu8_epi16(gARV->_mixed.blck128[1]);
-			gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
-			gARV->absRow = _mm256_abs_epi16(gARV->subRow);
-			_mm256_storeu_si256(gARV->resRows + (y * 2 + 1), gARV->absRow);
-			_mm256_storeu_si256((__m256i*)err_temp[4 * y + 2], _mm256_cvtepi16_epi32(*(__m128i*)&gARV->subRow));
-			_mm256_storeu_si256((__m256i*)err_temp[4 * y + 3], _mm256_cvtepi16_epi32(*((__m128i*)&gARV->subRow + 1)));
-
-			gARV->sumRow = _mm256_hadd_epi16(*(gARV->resRows + (y * 2)), *(gARV->resRows + (y * 2 + 1)));
-			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-			SAE_SIMD += _mm_extract_epi16(*(__m128i*)&gARV->sumRow, 0) + _mm_extract_epi16(*((__m128i*)&gARV->subRow + 1), 0);
-		}
-		SAE = SAE_SIMD;
 	}
 	else
 	{
-		if (left == NULL)
+		for (int y = 0; y < blocksize; y++)
 		{
-			for (int y = 0; y < blocksize; y++)
+			for (int x = 0; x < blocksize; x++)
 			{
-				for (int x = 0; x < blocksize; x++)
-				{
-					err_temp[y][x] = (int)current[y][x] - 128;
-					SAE += abs(err_temp[y][x]);
-				}
-			}
-		}
-		else
-		{
-			for (int y = 0; y < blocksize; y++)
-			{
-				for (int x = 0; x < blocksize; x++)
-				{
-					err_temp[y][x] = (int)current[y][x] - (int)left[y][blocksize - 1];
-					SAE += abs(err_temp[y][x]);
-				}
+				err_temp[y][x] = (int)current[y][x] - (int)left[y][blocksize - 1];
+				SAE += abs(err_temp[y][x]);
 			}
 		}
 	}
+	
 	return SAE;
 }
 int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char current[][8], int *err_temp[8], int blocksize) // DC; �ϴ� ù��° �ι�° �Ķ������ ���̸� 8�� static�ϰ� ����
@@ -618,120 +530,49 @@ int DPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], unsigned char 
 	}
 
 	predVal = (predValLeft + predValUpper) / (double)(blocksize + blocksize);
-
-
-	if(gSIMDFlag)
-	{
-		int SAE_SIMD = 0;
-		gARV->predictionRow = _mm256_set1_epi16(predVal);
-
-		for (int y = 0; y < 2; y++)
-		{
-			gARV->_mixed.blck256 = _mm256_loadu_si256((__m256i*)(current+(y * 4)));
-			gARV->currentRow = _mm256_cvtepu8_epi16(gARV->_mixed.blck128[0]);
-			gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
-			gARV->absRow = _mm256_abs_epi16(gARV->subRow);
-			_mm256_storeu_si256(gARV->resRows + (y * 2), gARV->absRow);
-			_mm256_storeu_si256((__m256i*)err_temp[4 * y], _mm256_cvtepi16_epi32(*(__m128i*)&gARV->subRow));
-			_mm256_storeu_si256((__m256i*)err_temp[4 * y + 1], _mm256_cvtepi16_epi32(*((__m128i*)&gARV->subRow + 1)));
 	
-			gARV->currentRow = _mm256_cvtepu8_epi16(gARV->_mixed.blck128[1]);
-			gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
-			gARV->absRow = _mm256_abs_epi16(gARV->subRow);
-			_mm256_storeu_si256(gARV->resRows + (y * 2 + 1), gARV->absRow);
-			_mm256_storeu_si256((__m256i*)err_temp[4 * y + 2], _mm256_cvtepi16_epi32(*(__m128i*)&gARV->subRow));
-			_mm256_storeu_si256((__m256i*)err_temp[4 * y + 3], _mm256_cvtepi16_epi32(*((__m128i*)&gARV->subRow + 1)));
-
-			gARV->sumRow = _mm256_hadd_epi16(*(gARV->resRows + (y * 2)), *(gARV->resRows + (y * 2 + 1)));
-			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-			SAE_SIMD += _mm_extract_epi16(*(__m128i*)&gARV->sumRow, 0) + _mm_extract_epi16(*((__m128i*)&gARV->subRow + 1), 0);
-		}
-
-		SAE = SAE_SIMD;
-	}
-	else
+	for (int y = 0; y<blocksize; y++)
 	{
-		for (int y = 0; y<blocksize; y++)
+		for (int x = 0; x<blocksize; x++)
 		{
-			for (int x = 0; x<blocksize; x++)
-			{
-				err_temp[y][x] = (int)current[y][x] - predVal;
-				SAE += abs(err_temp[y][x]);
-			}
+			err_temp[y][x] = (int)current[y][x] - predVal;
+			SAE += abs(err_temp[y][x]);
 		}
 	}
+
 	return SAE;
 }
 void IDPCM_pix_0(unsigned char upper[][8], double current[][8], unsigned char restored_temp[][8], int blocksize)
 {	
-	if (gSIMDFlag)
+	
+	int temp = 0;
+	if (upper == NULL)
 	{
-		__m256i predictionRow;
-		__m256i currentRow;
-		__m256i restoredRow;
-		__m256i tempRow;
-		__mmMIXED mixedRow;
-
-		__m256i resRow;
-		__m256d tempRowd;
-		__mmMIXED mixedCurrentRow;
-		__m256i zeroRow = _mm256_setzero_si256();
-
-		if (upper == NULL)
-		{
-			predictionRow = _mm256_set1_epi16(128);
-		}
-		else
-		{
-			predictionRow = _mm256_cvtepu8_epi32(*(__m128i*)upper[blocksize - 1]);
-		}
-
 		for (int y = 0; y < blocksize; y++)
 		{
-			tempRowd = _mm256_loadu_pd(&current[y][0]); // shit... current type is double...
-			mixedCurrentRow.blck128[0] = _mm256_cvtpd_epi32(tempRowd);
-			tempRowd = _mm256_loadu_pd(&current[y][4]);
-			mixedCurrentRow.blck128[1] = _mm256_cvtpd_epi32(tempRowd);
-			restoredRow = _mm256_add_epi32(mixedCurrentRow.blck256, predictionRow);
-			restoredRow = _mm256_packs_epi32(restoredRow, zeroRow);
-			restoredRow = _mm256_packus_epi16(restoredRow, zeroRow);
-
-			memcpy(&restored_temp[y], &restoredRow.m256i_i32[0], sizeof(int));
-			memcpy(&restored_temp[y][4], &restoredRow.m256i_i32[4], sizeof(int));
+			for (int x = 0; x < blocksize; x++)
+			{
+				temp = current[y][x] + 128;
+				temp = (temp > 255) ? 255 : temp;
+				temp = (temp < 0) ? 0 : temp;
+				restored_temp[y][x] = (unsigned char)temp;
+			}
 		}
 	}
 	else
 	{
-		int temp = 0;
-		if (upper == NULL)
+		for (int y = 0; y < blocksize; y++)
 		{
-			for (int y = 0; y < blocksize; y++)
+			for (int x = 0; x < blocksize; x++)
 			{
-				for (int x = 0; x < blocksize; x++)
-				{
-					temp = current[y][x] + 128;
-					temp = (temp > 255) ? 255 : temp;
-					temp = (temp < 0) ? 0 : temp;
-					restored_temp[y][x] = (unsigned char)temp;
-				}
-			}
-		}
-		else
-		{
-			for (int y = 0; y < blocksize; y++)
-			{
-				for (int x = 0; x < blocksize; x++)
-				{
-					temp = current[y][x] + upper[blocksize - 1][x];
-					temp = (temp > 255) ? 255 : temp;
-					temp = (temp < 0) ? 0 : temp;
-					restored_temp[y][x] = (unsigned char)temp;
-				}
+				temp = current[y][x] + upper[blocksize - 1][x];
+				temp = (temp > 255) ? 255 : temp;
+				temp = (temp < 0) ? 0 : temp;
+				restored_temp[y][x] = (unsigned char)temp;
 			}
 		}
 	}
+	
 
 }
 void IDPCM_pix_1(unsigned char left[][8], double current[][8], unsigned char restored_temp[][8], int blocksize)
