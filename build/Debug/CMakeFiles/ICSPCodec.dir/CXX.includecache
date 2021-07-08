@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/jawthrow/project/ICSPCodec/source/encoder/ICSP_Codec_Encoder.h
+iostream
+-
+math.h
+-
+stdlib.h
+-
+memory.h
+-
+time.h
+-
+limits.h
+-
+immintrin.h
+-
+iomanip
+-
+windows.h
+-
+
+/home/jawthrow/project/ICSPCodec/source/encoder/ICSP_Codec_Encoder_source.cpp
+ICSP_Codec_Encoder.h
+/home/jawthrow/project/ICSPCodec/source/encoder/ICSP_Codec_Encoder.h
+
+/home/jawthrow/project/ICSPCodec/source/encoder/encode.cpp
+ICSP_Codec_Encoder.h
+/home/jawthrow/project/ICSPCodec/source/encoder/ICSP_Codec_Encoder.h
+

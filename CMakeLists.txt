@@ -28,9 +28,6 @@ INCLUDE_DIRECTORIES ( )
 ADD_COMPILE_OPTIONS ( -g -Wall -msse -msse4 -mavx2 -mavx)
 SET ( CMAKE_EXE_LINKER_FLAGS "-static -Wl,--gc-sections" )
  
-# 공통 링크 라이브러리 (-l)
-# LINK_LIBRARIES( uart andromeda )
- 
 # 공통 링크 라이브러리 디렉토리 (-L)
 LINK_DIRECTORIES ( /usr/lib )
  
@@ -39,7 +36,7 @@ SET ( CMAKE_C_FLAGS_DEBUG "-DDEBUG -DC_FLAGS" )
 SET ( CMAKE_EXE_LINKER_FLAGS_DEBUG "-DDEBUG -DLINKER_FLAGS" )
  
 # "Release" 형상 한정 컴파일 옵션, 링크 옵션
-SET ( CMAKE_C_FLAGS_RELEASE "-DRELEASE -DC_FLAGS" )
+SET ( CMAKE_C_FLAGS_RELEASE "-DRELEASE -DC_FLAGS -O2" )
 SET ( CMAKE_EXE_LINKER_FLAGS_RELEASE "-DRELEASE -DLINKER_FLAGS" )
  
 # 출력 디렉토리
