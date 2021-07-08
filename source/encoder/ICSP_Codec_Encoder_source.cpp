@@ -577,75 +577,36 @@ void IDPCM_pix_0(unsigned char upper[][8], double current[][8], unsigned char re
 }
 void IDPCM_pix_1(unsigned char left[][8], double current[][8], unsigned char restored_temp[][8], int blocksize)
 {
-	if(gSIMDFlag)
+	
+	int temp = 0;
+	if (left == NULL)
 	{
-		__m256i predictionRows[8];
-		__m256i currentRow;
-		__m256i restoredRow;
-		__m256i tempRow;
-		__mmMIXED mixedRow;
-
-		__m256i resRow;
-		__m256d tempRowd;
-		__mmMIXED mixedCurrentRow;
-		__m256i zeroRow = _mm256_setzero_si256();
-
-		if (left == NULL)
-		{
-			for (int i = 0; i < blocksize; i++)
-				predictionRows[i] = _mm256_set1_epi16(128);
-		}
-		else
-		{
-			for (int i = 0; i < blocksize; i++)
-				predictionRows[i] = _mm256_set1_epi32((int)left[i][blocksize - 1]);
-		}
-
 		for (int y = 0; y < blocksize; y++)
 		{
-			tempRowd = _mm256_loadu_pd(&current[y][0]);
-			mixedCurrentRow.blck128[0] = _mm256_cvtpd_epi32(tempRowd);
-			tempRowd = _mm256_loadu_pd(&current[y][4]);
-			mixedCurrentRow.blck128[1] = _mm256_cvtpd_epi32(tempRowd);
-			restoredRow = _mm256_add_epi32(mixedCurrentRow.blck256, predictionRows[y]);
-			restoredRow = _mm256_packs_epi32(restoredRow, zeroRow);
-			restoredRow = _mm256_packus_epi16(restoredRow, zeroRow);
-
-			memcpy(&restored_temp[y], &restoredRow.m256i_i32[0], sizeof(int));
-			memcpy(&restored_temp[y][4], &restoredRow.m256i_i32[4], sizeof(int));
+			for (int x = 0; x < blocksize; x++)
+			{
+				temp = current[y][x] + 128;
+				temp = (temp > 255) ? 255 : temp;
+				temp = (temp < 0) ? 0 : temp;
+				restored_temp[y][x] = temp;
+			}
 		}
 	}
 	else
 	{
-		int temp = 0;
-		if (left == NULL)
+		for (int y = 0; y < blocksize; y++)
 		{
-			for (int y = 0; y < blocksize; y++)
+			for (int x = 0; x < blocksize; x++)
 			{
-				for (int x = 0; x < blocksize; x++)
-				{
-					temp = current[y][x] + 128;
-					temp = (temp > 255) ? 255 : temp;
-					temp = (temp < 0) ? 0 : temp;
-					restored_temp[y][x] = temp;
-				}
-			}
-		}
-		else
-		{
-			for (int y = 0; y < blocksize; y++)
-			{
-				for (int x = 0; x < blocksize; x++)
-				{
-					temp = current[y][x] + left[y][blocksize - 1];
-					temp = (temp > 255) ? 255 : temp;
-					temp = (temp < 0) ? 0 : temp;
-					restored_temp[y][x] = temp;
-					restored_temp[y][x] = temp;
-				}
+				temp = current[y][x] + left[y][blocksize - 1];
+				temp = (temp > 255) ? 255 : temp;
+				temp = (temp < 0) ? 0 : temp;
+				restored_temp[y][x] = temp;
+				restored_temp[y][x] = temp;
 			}
 		}
 	}
+	
 }
 void IDPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], double current[][8], unsigned char restored_temp[][8], int blocksize)
 {
@@ -675,47 +636,18 @@ void IDPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], double curre
 	}
 
 	predVal = (predValLeft + predValUpper) / (blocksize + blocksize);
-
-
-	if (gSIMDFlag)
+	
+	for (int y = 0; y < blocksize; y++)
 	{
-		__m256i predictionRow = _mm256_set1_epi32(predVal);
-		__m256i restoredRow;
-		__mmMIXED mixedRow;
-
-		__m256i resRow;
-		__m256d tempRowd;
-		__mmMIXED mixedCurrentRow;
-		__m256i zeroRow = _mm256_setzero_si256();
-
-
-		for (int y = 0; y < blocksize; y++)
+		for (int x = 0; x < blocksize; x++)
 		{
-			tempRowd = _mm256_loadu_pd(&current[y][0]);
-			mixedCurrentRow.blck128[0] = _mm256_cvtpd_epi32(tempRowd);
-			tempRowd = _mm256_loadu_pd(&current[y][4]);
-			mixedCurrentRow.blck128[1] = _mm256_cvtpd_epi32(tempRowd);
-			restoredRow = _mm256_add_epi32(mixedCurrentRow.blck256, predictionRow);
-			restoredRow = _mm256_packs_epi32(restoredRow, zeroRow);
-			restoredRow = _mm256_packus_epi16(restoredRow, zeroRow);
-
-			memcpy(&restored_temp[y], &restoredRow.m256i_i32[0], sizeof(int));
-			memcpy(&restored_temp[y][4], &restoredRow.m256i_i32[4], sizeof(int));
+			temp = current[y][x] + predVal;
+			temp = (temp > 255) ? 255 : temp;
+			temp = (temp < 0) ? 0 : temp;
+			restored_temp[y][x] = (unsigned char)temp;
 		}
 	}
-	else
-	{
-		for (int y = 0; y < blocksize; y++)
-		{
-			for (int x = 0; x < blocksize; x++)
-			{
-				temp = current[y][x] + predVal;
-				temp = (temp > 255) ? 255 : temp;
-				temp = (temp < 0) ? 0 : temp;
-				restored_temp[y][x] = (unsigned char)temp;
-			}
-		}
-	}
+	
 }
 void DPCM_pix_block(FrameData &frm, int numOfblck16, int numOfblck8, int blocksize, int splitWidth)
 {
@@ -1854,9 +1786,6 @@ void intraImgReconstruct(FrameData &frm)
 /* inter prediction function */
 int interPrediction(FrameData& cntFrm, FrameData& prevFrm, int QstepDC, int QstepAC)
 {
-	if (gSIMDFlag); //gfp = fopen("Inter_MotionEstimation_vector.txt", "at");
-	else;   		//gfp = fopen("Inter_MotionEstimation_scalar.txt", "at");
-
 	int totalblck = cntFrm.nblocks16;
 	int nblock8 = cntFrm.nblocks8;
 	int blocksize1 = cntFrm.blocks->blocksize1;
@@ -2142,75 +2071,29 @@ void getPaddingImage(unsigned char* src, unsigned char* dst, int padWidth, int p
 void get16block(unsigned char* img, unsigned char dst[][16], int y0, int x0, int width, int blocksize)  
 {
 	// padimg size - width: 382 height: 320
-	// extract a 16x16 block at (x0, y0) coordinate
-	if (gSIMDFlag)
+	// extract a 16x16 block at (x0, y0) coordinate	
+	for (int y = 0; y < blocksize; y++)
 	{
-		int nInterLoop = blocksize / 2; // nInterLoop : 8
-		for (int y = 0; y < nInterLoop; y++)
+		for (int x = 0; x < blocksize; x++)
 		{
-			_mm256_storeu_si256((__m256i*)(dst + (y * 2)), _mm256_loadu2_m128i((__m128i*)(img + (((y * 2 + 1)*width + y0*width) + x0)), (__m128i*)(img + (((y * 2)*width + y0*width) + x0))));
+			dst[y][x] = img[(y*width + y0*width) + x + x0];
 		}
 	}
-	else
-	{
-		for (int y = 0; y < blocksize; y++)
-		{
-			for (int x = 0; x < blocksize; x++)
-			{
-				dst[y][x] = img[(y*width + y0*width) + x + x0];
-			}
-		}
-	}
+	
 }
 int getSAD(unsigned char currentblck[][16], unsigned char spiralblck[][16], int blocksize)
 {
 	int SAD = 0;
-
-	if (gSIMDFlag)
+	
+	// 16 x 16
+	for (int y = 0; y < blocksize; y++)
 	{
-		int SAD_SIMD = 0;
-		__mmMIXED mixedRef;
-		__mmMIXED mixedSrc;
-
-		int nInterLoop = blocksize / 2; // 8��
-		for (int y = 0; y < nInterLoop; y++)
+		for (int x = 0; x < blocksize; x++)
 		{
-			mixedSrc.blck256 = _mm256_loadu_si256((__m256i*)currentblck[y * 2]);
-			mixedRef.blck256 = _mm256_loadu_si256((__m256i*)spiralblck[y * 2]);
-
-			gARV->currentRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[0]);
-			gARV->predictionRow = _mm256_cvtepu8_epi16(mixedRef.blck128[0]);
-			gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
-			gARV->subRow = _mm256_abs_epi16(gARV->subRow);
-			_mm256_storeu_si256(gARV->resRows + (y * 2), gARV->subRow);
-
-			gARV->currentRow = _mm256_cvtepu8_epi16(mixedSrc.blck128[1]);
-			gARV->predictionRow = _mm256_cvtepu8_epi16(mixedRef.blck128[1]);
-			gARV->subRow = _mm256_sub_epi16(gARV->currentRow, gARV->predictionRow);
-			gARV->subRow = _mm256_abs_epi16(gARV->subRow);
-			_mm256_storeu_si256(gARV->resRows + (y * 2 + 1), gARV->subRow);
-
-			gARV->sumRow = _mm256_hadd_epi16(*(gARV->resRows + (y * 2)), *(gARV->resRows + (y * 2 + 1)));
-			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-			gARV->sumRow = _mm256_hadd_epi16(gARV->sumRow, gARV->sumRow);
-			SAD_SIMD += _mm_extract_epi16(*(__m128i*)&gARV->sumRow, 0) + _mm_extract_epi16(*((__m128i*)&gARV->sumRow + 1), 0);
-		}
-
-		SAD = SAD_SIMD;
-	}
-	else
-	{
-		// 16 x 16
-		for (int y = 0; y < blocksize; y++)
-		{
-			for (int x = 0; x < blocksize; x++)
-			{
-				SAD += abs((int)currentblck[y][x] - (int)spiralblck[y][x]);
-			}
+			SAD += abs((int)currentblck[y][x] - (int)spiralblck[y][x]);
 		}
 	}
-	//fprintf(gfp, "%d\n", SAD);
+	
 	return SAD;
 }
 void interYReconstruct(FrameData& cntFrm, FrameData& prevFrm)
@@ -2618,76 +2501,29 @@ void DCT_block(BlockData &bd , int numOfblck8, int blocksize, int type)
 
 	
 	// double type �õ� �ʿ�
-	if (gSIMDFlag)
+	
+	for (int v = 0; v < blocksize; v++)
 	{
-		__m256 cosTableRow[8];
-		__m256 errRow;
-		__m256 tempRows[8];
-		__m256 sumRow = _mm256_setzero_ps();
-		for (int i = 0; i < 8; i++)
-			cosTableRow[i] = _mm256_loadu_ps(costable[i]);
-
-		float temp2[8][8] = { 0.f, };
-		float temp3[8][8] = { 0.f, };
 		for (int u = 0; u < blocksize; u++)
 		{
-			errRow = _mm256_cvtepi32_ps(_mm256_loadu_si256((__m256i*)Errblck->block[u]));
-
-			for (int j = 0; j < blocksize; j++)
-				tempRows[j] = _mm256_mul_ps(errRow, cosTableRow[j]);
-
-			for (int j = 0; j < blocksize; j++)
+			for (int x = 0; x < blocksize; x++)
 			{
-				sumRow = _mm256_hadd_ps(tempRows[j], tempRows[j]);
-				sumRow = _mm256_hadd_ps(sumRow, sumRow);
-				temp2[u][j] = double(sumRow.m256_f32[0] + sumRow.m256_f32[4]);
-				sumRow = _mm256_setzero_ps();
+				temp.block[v][u] += (double)Errblck->block[v][x] * costable[u][x];
 			}
 		}
-
-
-
-		for (int u = 0; u < blocksize; u++)
-		{
-			errRow = _mm256_setr_ps(temp2[0][u], temp2[1][u], temp2[2][u], temp2[3][u], temp2[4][u], temp2[5][u], temp2[6][u], temp2[7][u]);
-
-			for (int j = 0; j < blocksize; j++)
-				tempRows[j] = _mm256_mul_ps(errRow, cosTableRow[j]);
-
-			for (int j = 0; j < blocksize; j++)
-			{
-				sumRow = _mm256_hadd_ps(tempRows[j], tempRows[j]);
-				sumRow = _mm256_hadd_ps(sumRow, sumRow);
-				DCTblck->block[j][u] = double(sumRow.m256_f32[0] + sumRow.m256_f32[4]);
-				sumRow = _mm256_setzero_ps();
-			}
-		}
-
 	}
-	else
+
+	for (int u = 0; u < blocksize; u++)
 	{
 		for (int v = 0; v < blocksize; v++)
 		{
-			for (int u = 0; u < blocksize; u++)
+			for (int y = 0; y < blocksize; y++)
 			{
-				for (int x = 0; x < blocksize; x++)
-				{
-					temp.block[v][u] += (double)Errblck->block[v][x] * costable[u][x];
-				}
-			}
-		}
-
-		for (int u = 0; u < blocksize; u++)
-		{
-			for (int v = 0; v < blocksize; v++)
-			{
-				for (int y = 0; y < blocksize; y++)
-				{
-					DCTblck->block[v][u] += temp.block[y][u] * costable[v][y];
-				}
+				DCTblck->block[v][u] += temp.block[y][u] * costable[v][y];
 			}
 		}
 	}
+	
 
 	for (int i = 0; i<blocksize; i++)
 	{
@@ -2726,64 +2562,31 @@ void Quantization_block(BlockData &bd, int numOfblck8, int blocksize, int QstepD
 		ACflag = &(bd.interACflag[numOfblck8]);
 	}
 
-	if (gSIMDFlag)
+	
+	for (int y = 0; y<blocksize; y++)
+		for (int x = 0; x<blocksize; x++)
+			Quanblck->block[y][x] = 0;
+
+	int Qstep = 0;
+	for (int y = 0; y<blocksize; y++)
 	{
-		__m256d DCTRowd[2];
-		__m256  DCTRowf;
-		__m256i DCTRowi;
-		__m256i QuanRow;
-		__m256 QuanRowf;
-		__m256 QstepRowf = _mm256_set1_ps(QstepAC);
-		for (int y = 0; y < blocksize; y++)
+		for (int x = 0; x<blocksize; x++)
 		{
-			DCTRowd[0] = _mm256_loadu_pd(DCTblck->block[y]);
-			DCTRowd[1] = _mm256_loadu_pd(&DCTblck->block[y][4]);
-			__m128 hiaddr = _mm256_cvtpd_ps(DCTRowd[1]);
-			__m128 loaddr = _mm256_cvtpd_ps(DCTRowd[0]);
-			DCTRowf = _mm256_loadu2_m128((float*)&hiaddr, (float*)&loaddr);
-			QuanRowf = _mm256_div_ps(DCTRowf, QstepRowf);
-			QuanRow = _mm256_cvtps_epi32(QuanRowf);
-			_mm256_storeu_si256((__m256i*)Quanblck->block[y], QuanRow);
-		}
-		Quanblck->block[0][0] = (DCTblck->block[0][0] + 0.5) / QstepDC;
-
-		*ACflag = 1;
-		for (int y = 0; y < blocksize && (*ACflag); y++)
-		{
-			for (int x = 0; x < blocksize && (*ACflag); x++)
-			{
-				if (x == 0 && y == 0) continue;
-				*ACflag = (Quanblck->block[y][x] != 0) ? 0 : 1;
-			}
-		}
-
-	}
-	else
-	{
-		for (int y = 0; y<blocksize; y++)
-			for (int x = 0; x<blocksize; x++)
-				Quanblck->block[y][x] = 0;
-
-		int Qstep = 0;
-		for (int y = 0; y<blocksize; y++)
-		{
-			for (int x = 0; x<blocksize; x++)
-			{
-				Qstep = (x == 0 && y == 0) ? QstepDC : QstepAC;
-				Quanblck->block[y][x] = (int)(DCTblck->block[y][x] + 0.5) / Qstep;
-			}
-		}
-
-		*ACflag = 1;
-		for (int y = 0; y<blocksize && (*ACflag); y++)
-		{
-			for (int x = 0; x<blocksize && (*ACflag); x++)
-			{
-				if (x == 0 && y == 0) continue;
-				*ACflag = (Quanblck->block[y][x] != 0) ? 0 : 1;
-			}
+			Qstep = (x == 0 && y == 0) ? QstepDC : QstepAC;
+			Quanblck->block[y][x] = (int)(DCTblck->block[y][x] + 0.5) / Qstep;
 		}
 	}
+
+	*ACflag = 1;
+	for (int y = 0; y<blocksize && (*ACflag); y++)
+	{
+		for (int x = 0; x<blocksize && (*ACflag); x++)
+		{
+			if (x == 0 && y == 0) continue;
+			*ACflag = (Quanblck->block[y][x] != 0) ? 0 : 1;
+		}
+	}
+	
 
 	free(DCTblck);
 }
@@ -2801,32 +2604,17 @@ void IQuantization_block(BlockData &bd, int numOfblck8, int blocksize, int Qstep
 		Quanblck  = (bd.interQuanblck[numOfblck8]);
 		IQuanblck = (bd.interInverseQuanblck[numOfblck8]);
 	}
-
-	if (gSIMDFlag)
+	
+	int Qstep = 0;
+	for (int y = 0; y < blocksize; y++)
 	{
-		__m256i QuanRow;
-		__m256i IQuanRow;
-		__m256i QStepRow = _mm256_set1_epi32(QstepAC);
-		for (int y = 0; y < blocksize; y++)
+		for (int x = 0; x < blocksize; x++)
 		{
-			QuanRow = _mm256_loadu_si256((__m256i*)Quanblck->block[y]);
-			IQuanRow = _mm256_mullo_epi32(QuanRow, QStepRow);
-			_mm256_storeu_si256((__m256i*)IQuanblck->block[y], IQuanRow);
-		}
-		IQuanblck->block[0][0] = Quanblck->block[0][0] * QstepDC;
-	}
-	else
-	{
-		int Qstep = 0;
-		for (int y = 0; y < blocksize; y++)
-		{
-			for (int x = 0; x < blocksize; x++)
-			{
-				Qstep = (x == 0 && y == 0) ? QstepDC : QstepAC;
-				IQuanblck->block[y][x] = Quanblck->block[y][x] * Qstep;
-			}
+			Qstep = (x == 0 && y == 0) ? QstepDC : QstepAC;
+			IQuanblck->block[y][x] = Quanblck->block[y][x] * Qstep;
 		}
 	}
+	
 	// data saved in Quantization did not need after IQuantization Processing, So free
 	free(Quanblck);
 }
@@ -2845,106 +2633,50 @@ void IDCT_block(BlockData &bd, int numOfblck8, int blocksize, int type)
 		IDCTblck  = (bd.interInverseDCTblck[numOfblck8]);
 		IQuanblck = (bd.interInverseQuanblck[numOfblck8]);
 	}
-
-	if(gSIMDFlag)
-	{
-		__m256 iQuanRow;
-		__m256 sumRow;
-		__m256 tempRow;
-		__m256 tempRows[8];
-		__m256 costableRows[8];
-		float temp2[8][8] = { 0, };
-
-		__m256 CuRow = _mm256_set1_ps(1.f);
-		__m256 CvRow = _mm256_set1_ps(1.f);
-		__m256 quadRow = _mm256_set1_ps(1.f / 4.f);
-
-		CuRow.m256_f32[0] = CvRow.m256_f32[0] = irt2;
-
-		for (int y = 0; y < blocksize; y++)
-		{
-			tempRow = _mm256_loadu_ps(costable[y]);
-			for (int i = 0; i < blocksize; i++)
-				costableRows[i].m256_f32[y] = tempRow.m256_f32[i]; // vertical direction initialize
-		}
-
-		for (int y = 0; y < blocksize; y++)
-		{
-			iQuanRow = _mm256_cvtepi32_ps(_mm256_loadu_si256((__m256i*)IQuanblck->block[y]));
-
-			for(int j = 0; j < blocksize; j++)
-				tempRows[j] = _mm256_mul_ps(CvRow, _mm256_mul_ps(iQuanRow, costableRows[j]));
-
-			for (int j = 0; j < blocksize; j++)
-			{
-				sumRow = _mm256_hadd_ps(tempRows[j], tempRows[j]);
-				sumRow = _mm256_hadd_ps(sumRow, sumRow);
-				temp2[y][j] = sumRow.m256_f32[0] + sumRow.m256_f32[4];
-				sumRow = _mm256_setzero_ps();
-			}
-		}
 	
-		for (int u = 0; u < blocksize; u++)
+	double *Cu = (double *)malloc(sizeof(double)*blocksize);
+	double *Cv = (double *)malloc(sizeof(double)*blocksize);
+
+	Cu[0] = Cv[0] = irt2;
+	for (int i = 1; i<blocksize; i++)
+	{
+		Cu[i] = Cv[i] = 1.;
+	}
+
+	for (int y = 0; y<blocksize; y++)
+	{
+		for (int x = 0; x<blocksize; x++)
 		{
-			tempRow = _mm256_setr_ps(temp2[0][u], temp2[1][u], temp2[2][u], temp2[3][u], temp2[4][u], temp2[5][u], temp2[6][u], temp2[7][u]);
-
-			for (int j = 0; j < blocksize; j++)
-				tempRows[j] = _mm256_mul_ps(CuRow, _mm256_mul_ps(tempRow, costableRows[j]));
-
-			for (int j = 0; j < blocksize; j++)
-			{
-				sumRow = _mm256_hadd_ps(tempRows[j], tempRows[j]);
-				sumRow = _mm256_hadd_ps(sumRow, sumRow);			
-				IDCTblck->block[j][u] = double(sumRow.m256_f32[0] + sumRow.m256_f32[4]);
-				sumRow = _mm256_setzero_ps();
-			}
+			IDCTblck->block[y][x] = temp.block[y][x] = 0;
 		}
 	}
-	else
+
+	for(int y=0; y<blocksize; y++)
 	{
-		double *Cu = (double *)malloc(sizeof(double)*blocksize);
-		double *Cv = (double *)malloc(sizeof(double)*blocksize);
-
-		Cu[0] = Cv[0] = irt2;
-		for (int i = 1; i<blocksize; i++)
-		{
-			Cu[i] = Cv[i] = 1.;
-		}
-
-		for (int y = 0; y<blocksize; y++)
-		{
-			for (int x = 0; x<blocksize; x++)
-			{
-				IDCTblck->block[y][x] = temp.block[y][x] = 0;
-			}
-		}
-
-		for(int y=0; y<blocksize; y++)
-		{
-			for(int x=0; x<blocksize; x++)
-			{
-				for(int u=0; u<blocksize; u++)
-				{
-					temp.block[y][x] += Cu[u] * (double)IQuanblck->block[y][u] * costable[u][x];
-				}
-			}
-		}
-
 		for(int x=0; x<blocksize; x++)
 		{
-			for(int y=0; y<blocksize; y++)
+			for(int u=0; u<blocksize; u++)
 			{
-				for(int v=0; v<blocksize; v++)
-				{
-					IDCTblck->block[y][x] += Cv[v] * temp.block[v][x] * costable[v][y];
-				}
+				temp.block[y][x] += Cu[u] * (double)IQuanblck->block[y][u] * costable[u][x];
 			}
 		}
-
-
-		free(Cv);
-		free(Cu);
 	}
+
+	for(int x=0; x<blocksize; x++)
+	{
+		for(int y=0; y<blocksize; y++)
+		{
+			for(int v=0; v<blocksize; v++)
+			{
+				IDCTblck->block[y][x] += Cv[v] * temp.block[v][x] * costable[v][y];
+			}
+		}
+	}
+
+
+	free(Cv);
+	free(Cu);
+	
 	
 	for (int i = 0; i<blocksize; i++)
 	{

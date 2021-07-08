@@ -1,1 +1,0 @@
-/usr/bin/c++  -g  -static -Wl,--gc-sections -DDEBUG -DLINKER_FLAGS -rdynamic CMakeFiles/ICSPCodec.dir/source/encoder/encode.cpp.o CMakeFiles/ICSPCodec.dir/source/encoder/ICSP_Codec_Encoder_source.cpp.o  -o Debug/ICSPCodec 

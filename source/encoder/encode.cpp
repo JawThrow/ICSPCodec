@@ -2,8 +2,7 @@
 
 
 extern char filename[256];
-extern bool gSIMDFlag;
-// argv: [0]:ICSPCodec.exe [1]sequence_fname [2]nframes [3]QPDC [4]QPAC [5]IntraPeroid [6]AVXFlag
+// argv: [0]:ICSPCodec.exe [1]sequence_fname [2]nframes [3]QPDC [4]QPAC [5]IntraPeroid
 int main(int argc, char *argv[])
 {	
 	
@@ -12,8 +11,6 @@ int main(int argc, char *argv[])
 	int QPDC = atoi(argv[3]);
 	int QPAC = atoi(argv[4]);
 	int intraPeriod = atoi(argv[5]);
-	bool AVXFlag = atoi(argv[6]);
-	gSIMDFlag = AVXFlag;
 
 	// split sequence name for saving compressed output
 	int idx = 0;
