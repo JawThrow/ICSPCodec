@@ -1,4 +1,4 @@
-build/CMakeCache.txt
-build/cmake_install.cmake
-build/CMakeFiles/
-build/Makefile
+build/Debug/CMakeCache.txt
+build/Debug/cmake_install.cmake
+build/Debug/CMakeFiles/
+build/Debug/Makefile
