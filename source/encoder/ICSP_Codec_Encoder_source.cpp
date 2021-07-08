@@ -46,14 +46,9 @@ int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe,  const int width, c
 	icC.YCbCr.nframe = nframe;
 	icC.YCbCr.width  = width;
 	icC.YCbCr.height = height;
-
-	/*char CIF_path[256] = "..\\CIF(352x288)";	
-	char CIF_fname[256];*/
 	
-	char CIF_path[256] = "data";
 	char CIF_fname[256];
-
-	sprintf(CIF_fname, "%s\\%s", CIF_path, fname);
+	sprintf(CIF_fname, "%s", fname);
 
 	FILE* input_fp;
 	input_fp = fopen(CIF_fname, "rb");
@@ -4648,7 +4643,7 @@ void makebitstream(FrameData* frames, int nframes, int height, int width, int Qs
 	header hd;
 	headerinit(hd, height, width, QstepDC, QstepAC, intraPeriod);
 	char compCIFfname[256];
-	sprintf(compCIFfname, "output\\%s_compCIF_%d_%d_%d.bin", filename, QstepDC, QstepAC, intraPeriod);
+	sprintf(compCIFfname, "%s_compCIF_%d_%d_%d.bin", filename, QstepDC, QstepAC, intraPeriod);
 	#pragma pack(push, 1)
 	FILE* fp = fopen(compCIFfname, "wb");
 	if(fp==NULL)

@@ -45,9 +45,9 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 	}
 	totalbits = byteslength*8;
 
-	//cout << "ÀüÃ¼ bits: " << totalbits << " ÀüÃ¼ ¹ÙÀÌÆ®¼ö : " << byteslength << endl;
+	//cout << "ï¿½ï¿½Ã¼ bits: " << totalbits << " ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ : " << byteslength << endl;
 	fseek(fp, sizeof(header), SEEK_SET);
-	unsigned char* bodystream = (unsigned char*)calloc( byteslength, sizeof(unsigned char) ); // ¾ÐÃàµÈ ¸ðµç ÇÁ·¹ÀÓ¿¡ ´ëÇÑ body
+	unsigned char* bodystream = (unsigned char*)calloc( byteslength, sizeof(unsigned char) ); // ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ó¿ï¿½ ï¿½ï¿½ï¿½ï¿½ body
 	if(bodystream==NULL)
 	{
 		cout << "fail to allocate bodystream memory" << endl;
@@ -99,10 +99,10 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 	{
 		for(int n=0; n<nframes; n++)
 		{
-			icC.dframes[n].dblocks   = (DBlockData*)malloc(sizeof(DBlockData)*totalblck);	// ´Ù¾²°í free
+			icC.dframes[n].dblocks   = (DBlockData*)malloc(sizeof(DBlockData)*totalblck);	// ï¿½Ù¾ï¿½ï¿½ï¿½ free
 			icC.dframes[n].dcbblocks = (DCBlockData*)malloc(sizeof(DCBlockData)*totalblck);
 			icC.dframes[n].dcrblocks = (DCBlockData*)malloc(sizeof(DCBlockData)*totalblck);
-			prevbits = cntidx; // bits ¼ö È®ÀÎÇÏ·Á°í
+			prevbits = cntidx; // bits ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½
 
 			// Y channel
 			for(int nblck16=0; nblck16<totalblck; nblck16++)
@@ -111,17 +111,17 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 
 				for(int nblck=0; nblck<nblckloop; nblck++)
 				{
-					intrabdY.mpmflag = bitchar[cntidx++];				// mpmflag ÀúÀå	
-					intrabdY.intraPredictionMode = bitchar[cntidx++];   // intra prediction mode ÀúÀå
+					intrabdY.mpmflag = bitchar[cntidx++];				// mpmflag ï¿½ï¿½ï¿½ï¿½	
+					intrabdY.intraPredictionMode = bitchar[cntidx++];   // intra prediction mode ï¿½ï¿½ï¿½ï¿½
 
-					// DC°ª decoding
+					// DCï¿½ï¿½ decoding
 					int DCbits=0;
 					DCbits = DCientropy(&bitchar[cntidx], intrabdY);
 					cntidx += DCbits;
 
-					intrabdY.ACflag = bitchar[cntidx++];  // ACflag ÀúÀå
+					intrabdY.ACflag = bitchar[cntidx++];  // ACflag ï¿½ï¿½ï¿½ï¿½
 				
-					// AC°ª decoding
+					// ACï¿½ï¿½ decoding
 					if(intrabdY.ACflag == 1)
 					{
 						cntidx += 63;
@@ -144,9 +144,9 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 					DCbits = DCientropy(&bitchar[cntidx], intrabdCb);
 					cntidx += DCbits;
 
-					intrabdCb.ACflag = bitchar[cntidx++];  // ACflag ÀúÀå
+					intrabdCb.ACflag = bitchar[cntidx++];  // ACflag ï¿½ï¿½ï¿½ï¿½
 
-					// AC°ª decoding
+					// ACï¿½ï¿½ decoding
 					if(intrabdCb.ACflag == 1)
 					{
 						cntidx += 63;
@@ -168,9 +168,9 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 					DCbits = DCientropy(&bitchar[cntidx], intrabdCr);
 					cntidx += DCbits;
 
-					intrabdCr.ACflag = bitchar[cntidx++];  // ACflag ÀúÀå
+					intrabdCr.ACflag = bitchar[cntidx++];  // ACflag ï¿½ï¿½ï¿½ï¿½
 
-					// AC°ª decoding
+					// ACï¿½ï¿½ decoding
 					if(intrabdCr.ACflag == 1)
 					{
 						cntidx += 63;
@@ -192,16 +192,16 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 	{
 		for(int n=0; n<nframes; n++)
 		{
-			icC.dframes[n].dblocks   = (DBlockData*)malloc(sizeof(DBlockData)*totalblck);	// ´Ù¾²°í free
+			icC.dframes[n].dblocks   = (DBlockData*)malloc(sizeof(DBlockData)*totalblck);	// ï¿½Ù¾ï¿½ï¿½ï¿½ free
 			icC.dframes[n].dcbblocks = (DCBlockData*)malloc(sizeof(DCBlockData)*totalblck);
 			icC.dframes[n].dcrblocks = (DCBlockData*)malloc(sizeof(DCBlockData)*totalblck);
-			prevbits = cntidx; // bits ¼ö È®ÀÎÇÏ·Á°í
+			prevbits = cntidx; // bits ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½
 
 			// intra prediction 
 			if(n%icC.intraPeriod==0)
 			{
 				// Y channel				
-				//cout << n << "¹øÂ° intra frame bits: " << cntidx << endl;
+				//cout << n << "ï¿½ï¿½Â° intra frame bits: " << cntidx << endl;
 				for(int nblck16=0; nblck16<totalblck; nblck16++)
 				{
 					DBlockData& dbd = icC.dframes[n].dblocks[nblck16];
@@ -209,19 +209,19 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 					//cout << nblck16 << " blocks" << endl;
 					for(int nblck=0; nblck<nblckloop; nblck++)
 					{
-						intrabdY.mpmflag = bitchar[cntidx++];				// mpmflag ÀúÀå	
-						intrabdY.intraPredictionMode = bitchar[cntidx++];   // intra prediction mode ÀúÀå
+						intrabdY.mpmflag = bitchar[cntidx++];				// mpmflag ï¿½ï¿½ï¿½ï¿½	
+						intrabdY.intraPredictionMode = bitchar[cntidx++];   // intra prediction mode ï¿½ï¿½ï¿½ï¿½
 
-						// DC°ª decoding
+						// DCï¿½ï¿½ decoding
 						int DCbits=0;
 						DCbits = DCientropy(&bitchar[cntidx], intrabdY);
 						cntidx += DCbits;
 
 						//cout << "Y dc bits: " << cntidx << endl;
 
-						intrabdY.ACflag = bitchar[cntidx++];  // ACflag ÀúÀå
+						intrabdY.ACflag = bitchar[cntidx++];  // ACflag ï¿½ï¿½ï¿½ï¿½
 
-						// AC°ª decoding
+						// ACï¿½ï¿½ decoding
 						if(intrabdY.ACflag == 1)
 						{
 							cntidx += 63;
@@ -247,9 +247,9 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 
 						//cout << "cb dc bits: " << cntidx << endl;
 
-						intrabdCb.ACflag = bitchar[cntidx++];  // ACflag ÀúÀå
+						intrabdCb.ACflag = bitchar[cntidx++];  // ACflag ï¿½ï¿½ï¿½ï¿½
 
-						// AC°ª decoding
+						// ACï¿½ï¿½ decoding
 						if(intrabdCb.ACflag == 1)
 						{
 							cntidx += 63;
@@ -274,9 +274,9 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 
 						//cout << "cr dc bits: " << cntidx << endl;
 
-						intrabdCr.ACflag = bitchar[cntidx++];  // ACflag ÀúÀå
+						intrabdCr.ACflag = bitchar[cntidx++];  // ACflag ï¿½ï¿½ï¿½ï¿½
 
-						// AC°ª decoding
+						// ACï¿½ï¿½ decoding
 						if(intrabdCr.ACflag == 1)
 						{
 							cntidx += 63;
@@ -295,7 +295,7 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 						//system("pause");
 					}					
 				}
-				//cout << n << "¹øÂ° intra frame ÀÐÀº ÈÄ bits: " << cntidx << endl;
+				//cout << n << "ï¿½ï¿½Â° intra frame ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ bits: " << cntidx << endl;
 				//system("pause");				
 			}
 			else  // inter prediction
@@ -304,7 +304,7 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 				for(int nblck16=0; nblck16<totalblck; nblck16++)
 				{
 					DBlockData& dbd = icC.dframes[n].dblocks[nblck16];
-					dbd.MVmodeflag =  bitchar[cntidx++]; // MVmodeflag ÀúÀå
+					dbd.MVmodeflag =  bitchar[cntidx++]; // MVmodeflag ï¿½ï¿½ï¿½ï¿½
 					MotionVector dmv;
 					dmv.x=dmv.y=0;
 
@@ -317,14 +317,14 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 
 					for(int nblck=0; nblck<nblckloop; nblck++)
 					{
-						// DC°ª decoding
+						// DCï¿½ï¿½ decoding
 						int DCbits=0;
 						DCbits = DCientropy(&bitchar[cntidx], interbdY);
 						cntidx += DCbits;
 
-						interbdY.ACflag = bitchar[cntidx++];  // ACflag ÀúÀå
+						interbdY.ACflag = bitchar[cntidx++];  // ACflag ï¿½ï¿½ï¿½ï¿½
 
-						// AC°ª decoding
+						// ACï¿½ï¿½ decoding
 						if(interbdY.ACflag == 1)
 						{
 							cntidx += 63;
@@ -347,9 +347,9 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 					DCbits = DCientropy(&bitchar[cntidx], interbdCb);
 					cntidx += DCbits;
 
-					interbdCb.ACflag = bitchar[cntidx++];  // ACflag ÀúÀå
+					interbdCb.ACflag = bitchar[cntidx++];  // ACflag ï¿½ï¿½ï¿½ï¿½
 
-					// AC°ª decoding
+					// ACï¿½ï¿½ decoding
 					if(interbdCb.ACflag == 1)
 					{
 						cntidx += 63;
@@ -369,11 +369,11 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 					int DCbits=0;
 					DCbits = DCientropy(&bitchar[cntidx], interbdCr);
 					cntidx += DCbits;
-					//cout << "crÀÇ DC bits: " << cntidx << endl;
+					//cout << "crï¿½ï¿½ DC bits: " << cntidx << endl;
 
-					interbdCr.ACflag = bitchar[cntidx++];  // ACflag ÀúÀå
+					interbdCr.ACflag = bitchar[cntidx++];  // ACflag ï¿½ï¿½ï¿½ï¿½
 
-					// AC°ª decoding
+					// ACï¿½ï¿½ decoding
 					if(interbdCr.ACflag == 1)
 					{
 						cntidx += 63;
@@ -389,13 +389,13 @@ int readBlockData(IcspCodec& icC, FILE* fp)
 						//cout << "acflag: 0" << endl;
 					}
 					interDCblckDataInit(dcrbd, interbdCr, blocksize2);}
-					/*cout << "crÀÇ AC bits: " << cntidx << endl;
+					/*cout << "crï¿½ï¿½ AC bits: " << cntidx << endl;
 					cout << "crframe bits: " << cntidx << endl;
 					system("pause");*/
 					
 				}
 			}
-			//cout << n << "¹øÂ° ÇÁ·¹ÀÓ bits: " << cntidx << endl;
+			//cout << n << "ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ bits: " << cntidx << endl;
 		}
 	}
 	free(bitchar);
@@ -2030,7 +2030,7 @@ void intraDblckDataInit(DBlockData& dbd, IntrabodyY bdy, int nblck, int blocksiz
 	dbd.MPMFlag[nblck] = bdy.mpmflag;
 	dbd.intraPredMode[nblck] = bdy.intraPredictionMode;
 		
-	int *reorderedblck = (int*)malloc(sizeof(int)*blocksize2*blocksize2);	// ´Ù¾²¸é free
+	int *reorderedblck = (int*)malloc(sizeof(int)*blocksize2*blocksize2);	// ï¿½Ù¾ï¿½ï¿½ï¿½ free
 	reorderedblck[0] = bdy.DCval;
 	for(int i=0; i<63; i++)
 	{
@@ -2043,7 +2043,7 @@ void intraDCblckDataInit(DCBlockData& dcbd, IntrabodyCbCr intrabdcbcr, int block
 {
 	dcbd.blocksize = blocksize;
 		
-	int *reorderedblck = (int*)malloc(sizeof(int)*blocksize*blocksize);	// ´Ù¾²¸é free
+	int *reorderedblck = (int*)malloc(sizeof(int)*blocksize*blocksize);	// ï¿½Ù¾ï¿½ï¿½ï¿½ free
 	reorderedblck[0] = intrabdcbcr.DCval;
 	for(int i=0; i<63; i++)
 	{
@@ -2057,7 +2057,7 @@ void interDblckDataInit(DBlockData& dbd, InterbodyY bdy, int nblck, int blocksiz
 	dbd.blocksize1 = blocksize1;
 	dbd.blocksize2 = blocksize2;
 		
-	int *reorderedblck = (int*)malloc(sizeof(int)*blocksize2*blocksize2);	// ´Ù¾²¸é free
+	int *reorderedblck = (int*)malloc(sizeof(int)*blocksize2*blocksize2);	// ï¿½Ù¾ï¿½ï¿½ï¿½ free
 	reorderedblck[0] = bdy.DCval;
 	for(int i=0; i<63; i++)
 	{
@@ -2070,7 +2070,7 @@ void interDCblckDataInit(DCBlockData& dcbd, InterbodyCbCr interbdcbcr, int block
 {
 	dcbd.blocksize = blocksize;
 		
-	int *reorderedblck = (int*)malloc(sizeof(int)*blocksize*blocksize);	// ´Ù¾²¸é free
+	int *reorderedblck = (int*)malloc(sizeof(int)*blocksize*blocksize);	// ï¿½Ù¾ï¿½ï¿½ï¿½ free
 	reorderedblck[0] = interbdcbcr.DCval;
 	for(int i=0; i<63; i++)
 	{
@@ -2098,7 +2098,7 @@ void allintraPredictionDecode(DFrameData *dframes, int nframes, int QstepDC, int
 			DCBlockData& dcbbd = dfrm.dcbblocks[numOfblck16];
 			DCBlockData& dcrbd = dfrm.dcrblocks[numOfblck16];
 			
-			/* ÇÒ´ç±¸°£ */
+			/* ï¿½Ò´ç±¸ï¿½ï¿½ */
 			dbd.intraQuanblck = (Block8i**)malloc(sizeof(Block8i*)*nblckloop);
 			for(int i=0; i<nblckloop; i++)
 				dbd.intraQuanblck[i] = (Block8i*)malloc(sizeof(Block8i));
@@ -2120,7 +2120,7 @@ void allintraPredictionDecode(DFrameData *dframes, int nframes, int QstepDC, int
 			dcbbd.intraInverseDCTblck  = (Block8d*)malloc(sizeof(Block8d));
 			dcrbd.intraInverseDCTblck  = (Block8d*)malloc(sizeof(Block8d));
 
-			/* ÇÒ´ç±¸°£³¡ */
+			/* ï¿½Ò´ç±¸ï¿½ï¿½ï¿½ï¿½ */
 
 			for(int numOfblck8=0; numOfblck8<nblckloop; numOfblck8++)
 			{
@@ -2166,7 +2166,7 @@ void intraPredictionDecode(DFrameData& dfrm, int QstepDC, int QstepAC)
 		DCBlockData& dcbbd = dfrm.dcbblocks[numOfblck16];
 		DCBlockData& dcrbd = dfrm.dcrblocks[numOfblck16];
 			
-		/* ÇÒ´ç±¸°£ */
+		/* ï¿½Ò´ç±¸ï¿½ï¿½ */
 		dbd.intraQuanblck = (Block8i**)malloc(sizeof(Block8i*)*nblckloop);
 		for(int i=0; i<nblckloop; i++)
 			dbd.intraQuanblck[i] = (Block8i*)malloc(sizeof(Block8i));
@@ -2188,7 +2188,7 @@ void intraPredictionDecode(DFrameData& dfrm, int QstepDC, int QstepAC)
 		dcbbd.intraInverseDCTblck  = (Block8d*)malloc(sizeof(Block8d));
 		dcrbd.intraInverseDCTblck  = (Block8d*)malloc(sizeof(Block8d));
 
-		/* ÇÒ´ç±¸°£³¡ */
+		/* ï¿½Ò´ç±¸ï¿½ï¿½ï¿½ï¿½ */
 		for(int numOfblck8=0; numOfblck8<nblckloop; numOfblck8++)
 		{
 			reorderingblck(dbd, numOfblck8, INTRA);
@@ -2228,7 +2228,7 @@ void interPredictionDecode(DFrameData& dcntFrm, DFrameData& dprevFrm, int QstepD
 
 	for(int nblck=0; nblck<totalblck; nblck++)
 	{
-		/* ÇÒ´ç~ */					
+		/* ï¿½Ò´ï¿½~ */					
 		dcntFrm.dblocks[nblck].interQuanblck = (Block8i**)malloc(sizeof(Block8i*)*nblckloop);
 		for(int i=0; i<nblckloop; i++)
 			dcntFrm.dblocks[nblck].interQuanblck[i] = (Block8i*)malloc(sizeof(Block8i));
@@ -2242,14 +2242,14 @@ void interPredictionDecode(DFrameData& dcntFrm, DFrameData& dprevFrm, int QstepD
 			dcntFrm.dblocks[nblck].interInverseDCTblck[i] = (Block8d*)malloc(sizeof(Block8d));
 
 		dcntFrm.dblocks[nblck].interInverseErrblck16 = (Block16i*)malloc(sizeof(Block16i));
-		/* ÇÒ´ç ³¡*/
+		/* ï¿½Ò´ï¿½ ï¿½ï¿½*/
 
 		for(int numOfblck8=0; numOfblck8<nblckloop; numOfblck8++)
 		{
 			reorderingblck(dcntFrm.dblocks[nblck], numOfblck8, INTER);
 			IQuantization_block(dcntFrm.dblocks[nblck], numOfblck8, blocksize2, QstepDC, QstepAC, INTER);
 			IDPCM_DC_block(dcntFrm, nblck, numOfblck8, blocksize2, splitWidth, INTER);
-			IDCT_block(dcntFrm.dblocks[nblck], numOfblck8, blocksize2, INTER); // º¹È£µÈ err°ªÀ» ¹ÝÈ¯
+			IDCT_block(dcntFrm.dblocks[nblck], numOfblck8, blocksize2, INTER); // ï¿½ï¿½È£ï¿½ï¿½ errï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 		}
 		ImvPrediction(dcntFrm, nblck);
 		mergeBlock(dcntFrm.dblocks[nblck], blocksize2, INTER);		
@@ -2665,10 +2665,10 @@ void interCbCr(DFrameData& dcntFrm, DFrameData& dprevFrm, int QstepDC, int Qstep
 		dcntFrm.dcrblocks[i].interInverseDCTblck = (Block8d*)malloc(sizeof(Block8d));
 	}
 
-	// ¿©±â¼­ºÎÅÍ ºí·Ï´ÜÀ§ ¹Ýº¹ 
+	// ï¿½ï¿½ï¿½â¼­ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´ï¿½ï¿½ï¿½ ï¿½Ýºï¿½ 
 	for(int nblck=0; nblck<totalblck; nblck++)
 	{
-		// Cb ÇÒ´ç //
+		// Cb ï¿½Ò´ï¿½ //
 		dcntFrm.dcbblocks[nblck].interQuanblck = (Block8i*)malloc(sizeof(Block8i));
 
 		Creorderingblck(dcntFrm.dcbblocks[nblck], INTER);
@@ -2677,7 +2677,7 @@ void interCbCr(DFrameData& dcntFrm, DFrameData& dprevFrm, int QstepDC, int Qstep
 		CIDCT_block(dcntFrm.dcbblocks[nblck], blocksize, INTER);
 
 
-		// Cr ÇÒ´ç //
+		// Cr ï¿½Ò´ï¿½ //
 		dcntFrm.dcrblocks[nblck].interQuanblck = (Block8i*)malloc(sizeof(Block8i));
 
 		Creorderingblck(dcntFrm.dcrblocks[nblck], INTER);
@@ -2709,7 +2709,7 @@ void interCbCrReconstruct(DFrameData& dcntFrm, DFrameData& dprevFrm)
 	int padImgWidth  = width  + padlen * 2;	//192
 	int padImgHeight = height + padlen * 2;	//160	
 		
-	// ÆÐµù ÀÌ¹ÌÁö »ý¼º
+	// ï¿½Ðµï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	unsigned char* paddingImageCb = (unsigned char*) calloc(sizeof(unsigned char), padImgWidth*padImgHeight);
 	getPaddingImage(dprevFrm.decodedCb, paddingImageCb, padImgWidth, padlen, width, height);
 	dcntFrm.decodedCb = (unsigned char*) malloc(sizeof(unsigned char)*width*height);
@@ -2914,13 +2914,13 @@ void izzf(int* src, Block8i& dst, int nloop, int beginidx, int blocksize)
 {
 	int len = blocksize-1;
 	if(nloop%2)
-	{   //»ó»ï°¢?
+	{   //ï¿½ï¿½ï°¢?
 		for(int i=0; i<nloop; i++)  dst.block[nloop-i-1][i] = 0;//src[beginidx+i];
 		dst.block[0][nloop] = 0;//src[beginidx+nloop];
 		for(int i=0; i<nloop; i++) dst.block[nloop-i][i] = 0;//src[(beginidx+nloop*2)-i];
 	}
 	else
-	{	//ÇÏ»ï°¢?
+	{	//ï¿½Ï»ï°¢?
 		for(int i=0; i<nloop; i++) dst.block[len-i][len-nloop+i] = 0;//src[beginidx+i];
 		dst.block[len][len-nloop] = 0;//src[beginidx+nloop];
 		for(int i=0; i<nloop; i++) dst.block[len-i][len-nloop+i+1] = 0;//src[(beginidx+nloop*2)-i];
@@ -2991,7 +2991,7 @@ void IDPCM_DC_block(DFrameData &frm, int numOfblck16, int numOfblck8, int blocks
 
 	if(predmode==INTRA)
 	{
-		if(numOfblck16 == 0) // 16x16ºí·ÏÀÇ À§Ä¡°¡ Ã¹ ¹øÂ°ÀÌ´Ù
+		if(numOfblck16 == 0) // 16x16ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã¹ ï¿½ï¿½Â°ï¿½Ì´ï¿½
 		{
 			switch(numOfblck8)
 			{
@@ -3023,7 +3023,7 @@ void IDPCM_DC_block(DFrameData &frm, int numOfblck16, int numOfblck8, int blocks
 				break;
 			}
 		}
-		else if(numOfblck16/splitWidth == 0) // 16x16ÀÇ À§Ä¡°¡ Ã¹ ÇàÀÌ´Ù.
+		else if(numOfblck16/splitWidth == 0) // 16x16ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½Ì´ï¿½.
 		{
 			switch(numOfblck8)
 			{
@@ -3061,7 +3061,7 @@ void IDPCM_DC_block(DFrameData &frm, int numOfblck16, int numOfblck8, int blocks
 				break;
 			}
 		}
-		else if(numOfblck16%splitWidth == 0) // 16x16 ºí·ÏÀÇ À§Ä¡°¡ Ã¹ ¿­ÀÌ´Ù.
+		else if(numOfblck16%splitWidth == 0) // 16x16 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½Ì´ï¿½.
 		{
 			switch(numOfblck8)
 			{
@@ -3099,7 +3099,7 @@ void IDPCM_DC_block(DFrameData &frm, int numOfblck16, int numOfblck8, int blocks
 				break;
 			}
 		}
-		else // 16x16 ºí·ÏÀÌ ±× ¿ÜÀÇ À§Ä¡¿¡ ÀÖ´Ù.
+		else // 16x16 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ö´ï¿½.
 		{
 			switch(numOfblck8)
 			{
@@ -3116,7 +3116,7 @@ void IDPCM_DC_block(DFrameData &frm, int numOfblck16, int numOfblck8, int blocks
 				break;
 			case 1:
 				numOfCurrentBlck=1;
-				// median (l u ur); ³¡ ºí·°Àº (l ul u)À¸·Î ÇØÁà¾ß µÊ
+				// median (l u ur); ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (l ul u)ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 				if(numOfblck16%splitWidth == splitWidth-1)
 				{
 					a = bd.intraInverseQuanblck[0]->block[0][0];	// left
@@ -3160,7 +3160,7 @@ void IDPCM_DC_block(DFrameData &frm, int numOfblck16, int numOfblck8, int blocks
 	}
 	else if(predmode==INTER)
 	{
-		if(numOfblck16 == 0) // 16x16ºí·ÏÀÇ À§Ä¡°¡ Ã¹ ¹øÂ°ÀÌ´Ù
+		if(numOfblck16 == 0) // 16x16ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã¹ ï¿½ï¿½Â°ï¿½Ì´ï¿½
 		{
 			switch(numOfblck8)
 			{
@@ -3192,7 +3192,7 @@ void IDPCM_DC_block(DFrameData &frm, int numOfblck16, int numOfblck8, int blocks
 				break;
 			}
 		}
-		else if(numOfblck16/splitWidth == 0) // 16x16ÀÇ À§Ä¡°¡ Ã¹ ÇàÀÌ´Ù.
+		else if(numOfblck16/splitWidth == 0) // 16x16ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½Ì´ï¿½.
 		{
 			switch(numOfblck8)
 			{
@@ -3230,7 +3230,7 @@ void IDPCM_DC_block(DFrameData &frm, int numOfblck16, int numOfblck8, int blocks
 				break;
 			}
 		}
-		else if(numOfblck16%splitWidth == 0) // 16x16 ºí·ÏÀÇ À§Ä¡°¡ Ã¹ ¿­ÀÌ´Ù.
+		else if(numOfblck16%splitWidth == 0) // 16x16 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ Ã¹ ï¿½ï¿½ï¿½Ì´ï¿½.
 		{
 			switch(numOfblck8)
 			{
@@ -3268,7 +3268,7 @@ void IDPCM_DC_block(DFrameData &frm, int numOfblck16, int numOfblck8, int blocks
 				break;
 			}
 		}
-		else // 16x16 ºí·ÏÀÌ ±× ¿ÜÀÇ À§Ä¡¿¡ ÀÖ´Ù.
+		else // 16x16 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½Ö´ï¿½.
 		{
 			switch(numOfblck8)
 			{
@@ -3285,7 +3285,7 @@ void IDPCM_DC_block(DFrameData &frm, int numOfblck16, int numOfblck8, int blocks
 				break;
 			case 1:
 				numOfCurrentBlck=1;
-				// median (l u ur); ³¡ ºí·°Àº (l ul u)À¸·Î ÇØÁà¾ß µÊ
+				// median (l u ur); ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ (l ul u)ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 				if(numOfblck16%splitWidth == splitWidth-1)
 				{
 					a = bd.interInverseQuanblck[0]->block[0][0];	// left
@@ -3405,7 +3405,7 @@ void IDCT_block(DBlockData &bd, int numOfblck8, int blocksize, int predmode)
 	//		{
 	//			for(int u=0; u<blocksize; u++)
 	//			{
-	//				idct2blck.block[y][x] += Cu[u]*Cv[v] * (double)IQuanblck->block[v][u] * cos(((2*x+1)*u*pi)/16.) * cos(((2*y+1)*v*pi)/16.);   // ½ÇÁ¦·Î´Â bd.intraDCTblck[n].block[u][v]ÀÌ ¾Æ´Ï¶ó InverseQuanblck°¡ ¸ÂÀ½
+	//				idct2blck.block[y][x] += Cu[u]*Cv[v] * (double)IQuanblck->block[v][u] * cos(((2*x+1)*u*pi)/16.) * cos(((2*y+1)*v*pi)/16.);   // ï¿½ï¿½ï¿½ï¿½ï¿½Î´ï¿½ bd.intraDCTblck[n].block[u][v]ï¿½ï¿½ ï¿½Æ´Ï¶ï¿½ InverseQuanblckï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	//			}
 	//		}
 	//	}
@@ -3451,13 +3451,13 @@ void IDPCM_pix_block(DFrameData &frm, int numOfblck16, int numOfblck8, int block
 	int modetemp0=0, modetemp1=0, modetemp2=0;
 	int median   = 0;
 	DBlockData &bd = frm.dblocks[numOfblck16];
-	if(numOfblck16==0) // 16x16 Ã¹¹øÂ° ºí·Ï
+	if(numOfblck16==0) // 16x16 Ã¹ï¿½ï¿½Â° ï¿½ï¿½ï¿½ï¿½
 	{
 		switch(numOfblck8)
 		{
 		case 0:
 			numOfCurrentBlck=0;
-			predMode = 2; // Ã¹¹ø¤Š ºí·ÏÀÇ DPCM mode´Â ¹«Á¶°Ç 2
+			predMode = 2; // Ã¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DPCM modeï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 2
 			bd.IDPCMmode[numOfCurrentBlck] = predMode;
 			if(predMode==0)      IDPCM_pix_0(NULL, bd.intraInverseDCTblck[numOfCurrentBlck]->block, bd.intraRestructedblck8[numOfCurrentBlck]->block, blocksize);
 			else if(predMode==1) IDPCM_pix_1(NULL, bd.intraInverseDCTblck[numOfCurrentBlck]->block, bd.intraRestructedblck8[numOfCurrentBlck]->block, blocksize);
@@ -3529,7 +3529,7 @@ void IDPCM_pix_block(DFrameData &frm, int numOfblck16, int numOfblck8, int block
 			break;
 		}
 	}
-	else if(numOfblck16/splitWidth == 0) // 16x16 Ã¹ Çà
+	else if(numOfblck16/splitWidth == 0) // 16x16 Ã¹ ï¿½ï¿½
 	{
 		switch(numOfblck8)
 		{
@@ -3624,7 +3624,7 @@ void IDPCM_pix_block(DFrameData &frm, int numOfblck16, int numOfblck8, int block
 			break;
 		}
 	}
-	else if(numOfblck16%splitWidth == 0) // 16x16 Ã¹ ¿­
+	else if(numOfblck16%splitWidth == 0) // 16x16 Ã¹ ï¿½ï¿½
 	{
 		switch(numOfblck8)
 		{
@@ -3719,7 +3719,7 @@ void IDPCM_pix_block(DFrameData &frm, int numOfblck16, int numOfblck8, int block
 			break;
 		}
 	}
-	else // ±×¿ÜÀÇ ºí·Ï
+	else // ï¿½×¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	{
 		switch(numOfblck8)
 		{		
@@ -3920,7 +3920,7 @@ void IDPCM_pix_2(unsigned char left[][8], unsigned char upper[][8], double curre
 		}
 	}
 }
-void mergeBlock(DBlockData &bd, int blocksize, int predmode) // 8x8 -> 16x16 À¸·Î ¸¸µé±â
+void mergeBlock(DBlockData &bd, int blocksize, int predmode) // 8x8 -> 16x16 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 {	
 	int nblck8 = 4;
 	if(predmode==INTRA)
@@ -4016,9 +4016,9 @@ void intraImgReconstruct(DFrameData &dfrm)
 	unsigned char* Cbchannel = (unsigned char *) calloc((width/2) * (height/2), sizeof(unsigned char));
 	unsigned char* Crchannel = (unsigned char *) calloc((width/2) * (height/2), sizeof(unsigned char));
 
-	dfrm.decodedY  = (unsigned char*) malloc(sizeof(unsigned char)*width*height);				//checkResultFramesÇÔ¼ö¿¡¼­ ¹ÝÈ¯
-	dfrm.decodedCb = (unsigned char*) malloc(sizeof(unsigned char)*(CbCrWidth)*(CbCrHeight));		//checkResultFrames¿¡¼­ ¹ÝÈ¯
-	dfrm.decodedCr = (unsigned char*) malloc(sizeof(unsigned char)*(CbCrWidth)*(CbCrHeight));		//checkResultFrames¿¡¼­ ¹ÝÈ¯
+	dfrm.decodedY  = (unsigned char*) malloc(sizeof(unsigned char)*width*height);				//checkResultFramesï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+	dfrm.decodedCb = (unsigned char*) malloc(sizeof(unsigned char)*(CbCrWidth)*(CbCrHeight));		//checkResultFramesï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
+	dfrm.decodedCr = (unsigned char*) malloc(sizeof(unsigned char)*(CbCrWidth)*(CbCrHeight));		//checkResultFramesï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
 
 	int temp = 0;
 	int tempCb = 0;
@@ -4187,11 +4187,11 @@ void CIDPCM_DC_block(DFrameData& dfrm, DCBlockData& dcbd, int numOfblck8, int Cb
 	{
 		IQuanblck->block[0][0] = IQuanblck->block[0][0] + 1024;
 	}
-	else if(numOfblck8/splitWidth==0) // Ã¹ Çà
+	else if(numOfblck8/splitWidth==0) // Ã¹ ï¿½ï¿½
 	{
 		IQuanblck->block[0][0] = IQuanblck->block[0][0] + IQuanblckLeft->block[0][0];
 	}
-	else if(numOfblck8%splitWidth==0) // Ã¹ ¿­
+	else if(numOfblck8%splitWidth==0) // Ã¹ ï¿½ï¿½
 	{
 		IQuanblck->block[0][0] = IQuanblck->block[0][0] + IQuanblckUpper->block[0][0];
 	}
@@ -4259,7 +4259,7 @@ void CIDCT_block(DCBlockData &dcbd, int blocksize, int predmode)
 	//		{
 	//			for(int u=0; u<blocksize; u++)
 	//			{
-	//				IDCTblck->block[y][x] += Cu[u]*Cv[v] * (double)IQuanblck->block[v][u] * cos(((2*x+1)*u*pi)/16.) * cos(((2*y+1)*v*pi)/16.);   // ½ÇÁ¦·Î´Â bd.intraDCTblck[n].block[u][v]ÀÌ ¾Æ´Ï¶ó InverseQuanblck°¡ ¸ÂÀ½
+	//				IDCTblck->block[y][x] += Cu[u]*Cv[v] * (double)IQuanblck->block[v][u] * cos(((2*x+1)*u*pi)/16.) * cos(((2*y+1)*v*pi)/16.);   // ï¿½ï¿½ï¿½ï¿½ï¿½Î´ï¿½ bd.intraDCTblck[n].block[u][v]ï¿½ï¿½ ï¿½Æ´Ï¶ï¿½ InverseQuanblckï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	//			}
 	//		}
 	//	}
@@ -4383,7 +4383,7 @@ void interYReconstruct(DFrameData& dcntFrm, DFrameData& dprevFrm)
 	int padImgWidth  = width  + padlen * 2;	//384
 	int padImgHeight = height + padlen * 2;	//320	
 
-	// ÆÐµù ÀÌ¹ÌÁö »ý¼º
+	// ï¿½Ðµï¿½ ï¿½Ì¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	unsigned char* paddingImage = (unsigned char*) calloc(sizeof(unsigned char), padImgWidth*padImgHeight);
 	getPaddingImage(dprevFrm.decodedY, paddingImage, padImgWidth, padlen, width, height);
 
@@ -4428,7 +4428,7 @@ void getPaddingImage(unsigned char* src, unsigned char* dst, int padWidth, int p
 	cout << "getpad" << endl;
 	system("pause");*/
 
-	// À­ÁÙ
+	// ï¿½ï¿½ï¿½ï¿½
 	for(int y=0; y<padlen; y++)
 	{
 		for(int x=0; x<width; x++)
@@ -4438,7 +4438,7 @@ void getPaddingImage(unsigned char* src, unsigned char* dst, int padWidth, int p
 		}
 	}
 
-	// ¾Æ·§ÁÙ
+	// ï¿½Æ·ï¿½ï¿½ï¿½
 	for(int y=0; y<height; y++)
 	{
 		for(int x=0; x<padlen; x++)
@@ -4448,7 +4448,7 @@ void getPaddingImage(unsigned char* src, unsigned char* dst, int padWidth, int p
 		}
 	}
 
-	// 4 ¸ð¼­¸®
+	// 4 ï¿½ð¼­¸ï¿½
 	for(int y=0; y<padlen; y++)
 	{
 		for(int x=0; x<padlen; x++)
@@ -4460,7 +4460,7 @@ void getPaddingImage(unsigned char* src, unsigned char* dst, int padWidth, int p
 		}
 	}
 }
-void get16block(unsigned char* img, unsigned char *dst[16], int y0, int x0, int width, int blocksize)  // ºí·ÏÀÇ Å©±â¸¦ 16·Î °íÁ¤ ¤Ì¤Ì
+void get16block(unsigned char* img, unsigned char *dst[16], int y0, int x0, int width, int blocksize)  // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å©ï¿½â¸¦ 16ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¤ï¿½
 {
 	// padimg size - width: 382 height: 320
 	for(int y=0; y<blocksize; y++)
@@ -4475,8 +4475,7 @@ void get16block(unsigned char* img, unsigned char *dst[16], int y0, int x0, int 
 /* check result function */
 void checkResultFrames(DFrameData* frm, int width, int height, int nframe, int predtype, int chtype)
 {
-	FILE* output_fp;
-	char CIF_path[256] = "..\\CIF(352x288)";
+	FILE* output_fp;	
 
 	char output_pred_name[256]; 
 	if(predtype == INTRA)
@@ -4492,8 +4491,7 @@ void checkResultFrames(DFrameData* frm, int width, int height, int nframe, int p
 
 
 	char output_fname[256];
-	//sprintf(output_fname, "%s\\%s%s", CIF_path, output_pred_name, output_ch_name);
-	sprintf(output_fname, "output\\%s%s", output_pred_name, output_ch_name);
+	sprintf(output_fname, "%s%s", output_pred_name, output_ch_name);
 
 	output_fp = fopen(output_fname, "wb");
 	if(output_fp==NULL)
@@ -4502,7 +4500,7 @@ void checkResultFrames(DFrameData* frm, int width, int height, int nframe, int p
 		return;
 	}
 
-	if(chtype==SAVE_Y)	// Y·Î¸¸ µÈ ¿µ»ó ¸¸µé±â
+	if(chtype==SAVE_Y)	// Yï¿½Î¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 	{
 		for(int i=0; i<nframe; i++)
 		{

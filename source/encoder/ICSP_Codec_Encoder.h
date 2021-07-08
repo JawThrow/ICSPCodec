@@ -13,9 +13,9 @@ using namespace std;
 #include <windows.h>
 #endif
 
-#define INTRA 0
-#define INTER 1
-#define ALL_INTRA 2
+#define ALL_INTRA 0
+#define INTRA 1
+#define INTER 2
 #define CB 3
 #define CR 4
 #define SAVE_Y 5
@@ -345,8 +345,8 @@ inline void IcspCodec::encoding(int intraPeriod)
 	{
 		// all intra predtion
 		allintraPrediction(frames, YCbCr.nframe, QstepDC, QstepAC);
-		makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTRA);
-		checkResultFrames(frames,  YCbCr.width, YCbCr.height, YCbCr.nframe, INTRA, SAVE_YUV);
+		//makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTRA);
+		//checkResultFrames(frames,  YCbCr.width, YCbCr.height, YCbCr.nframe, INTRA, SAVE_YUV);
 	}
 	else
 	{
@@ -358,8 +358,8 @@ inline void IcspCodec::encoding(int intraPeriod)
 			else
 				interPrediction(frames[n], frames[n-1], QstepDC, QstepAC);
 		}		
-		makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTER);
-		checkResultFrames(frames, YCbCr.width, YCbCr.height,YCbCr.nframe, INTER, SAVE_YUV);
+		//makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTER);
+		//checkResultFrames(frames, YCbCr.width, YCbCr.height,YCbCr.nframe, INTER, SAVE_YUV);
 	}
 	
 	// double entime = (double)(clock()-t)/CLOCKS_PER_SEC;	
