@@ -374,17 +374,9 @@ inline IcspCodec::~IcspCodec()
 {
 	// YCbCr unsigned pointer free; frames free; frames -> blocks free
 	// YCbCr�� �ҷ��� ��ü ���� free
-	
-	/*free(YCbCr.Ys);
-	free(YCbCr.Cbs);
-	free(YCbCr.Crs);*/
 
 	for(int i=0; i<YCbCr.nframe; i++)
 	{
-		/*free(frames[i].Y);
-		free(frames[i].Cb);
-		free(frames[i].Cr);*/
-		
 		free(frames[i].blocks);
 		free(frames[i].Cbblocks);
 		free(frames[i].Crblocks);
