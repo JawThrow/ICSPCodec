@@ -21,11 +21,12 @@ using namespace std;
 #define SAVE_Y 5
 #define SAVE_YUV 6 
 
-union __mmMIXED
+typedef enum
 {
-	__m256i blck256;
-	__m128i blck128[2];
-};
+	I_FRAME=0,
+	P_FRAME=1,
+	B_FRAME=2
+}E_FRAME_TYPE;
 
 struct Block8d { double block[8][8]; };
 struct Block8i { int block[8][8]; };
@@ -205,35 +206,13 @@ public:
 	~IcspCodec(); 
 };
 
-// ARV
-class AVXRowsforVectorization
-{
-public:
-	__m256i currentRow;
-	__m256i predictionRow;
-	__m256i subRow;
-	__m256i absRow;
-	__m256i sumRow;
-	__m256i tempRows[2];
-	__m256i resRows[16]; // inter prediction require 16 prediction rows
-	__m256i zeroRow;
-	__mmMIXED _mixed;
-	__mmMIXED PredMixed[4];
-
-public:
-	AVXRowsforVectorization()
-	{
-		subRow = _mm256_setzero_si256();
-		absRow = _mm256_setzero_si256();
-		sumRow = _mm256_setzero_si256();
-		zeroRow = _mm256_setzero_si256();
-	}
-};
-
 /* initiation function */
 int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe, const int width, const int height);
 int splitFrames(IcspCodec &icC);
 int splitBlocks(IcspCodec &IcC, int blocksize1, int blocksize2);
+
+/* message function */
+void print_frame_end_message(int curr_frame_num, int frame_type);
 
 /* intra prediction function */
 void intraPrediction(FrameData& frm, int QstepDC, int QstepAC);
@@ -343,31 +322,31 @@ inline void IcspCodec::encoding(int intraPeriod)
 
 	if( intraPeriod==ALL_INTRA )
 	{
-		// all intra predtion
 		allintraPrediction(frames, YCbCr.nframe, QstepDC, QstepAC);
 		//makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTRA);
 		//checkResultFrames(frames,  YCbCr.width, YCbCr.height, YCbCr.nframe, INTRA, SAVE_YUV);
 	}
 	else
 	{
-		// hybrid prediction
 		for(int n=0; n<YCbCr.nframe; n++)
 		{
+			int frame_type = 0;			
 			if(n%intraPeriod==0)
-				intraPrediction(frames[n], QstepDC, QstepAC);
+			{
+				frame_type = I_FRAME;
+				intraPrediction(frames[n], QstepDC, QstepAC);				
+			}
 			else
+			{
+				frame_type = P_FRAME;
 				interPrediction(frames[n], frames[n-1], QstepDC, QstepAC);
+			}
+			print_frame_end_message(n, frame_type);
 		}		
 		//makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTER);
 		//checkResultFrames(frames, YCbCr.width, YCbCr.height,YCbCr.nframe, INTER, SAVE_YUV);
 	}
 	
-	// double entime = (double)(clock()-t)/CLOCKS_PER_SEC;	
-	// char outputtxt[256];
-	// sprintf(outputtxt, "ending time: %.4lf(s) QPDC: %d  QPAC: %d Period: %d\n", entime, QstepDC, QstepAC, intraPeriod);
-	// FILE* fp = fopen("experimental_Result_Encoding.txt", "at");
-	// fprintf(fp, "%s", outputtxt);
-	// fclose(fp);
 }
 
 inline IcspCodec::~IcspCodec()

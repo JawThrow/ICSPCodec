@@ -1,6 +1,5 @@
 #include "ICSP_Codec_Encoder.h"
 
-
 extern char filename[256];
 // argv: [0]:ICSPCodec [1]sequence_fname [2]nframes [3]QPDC [4]QPAC [5]IntraPeroid
 int main(int argc, char *argv[])

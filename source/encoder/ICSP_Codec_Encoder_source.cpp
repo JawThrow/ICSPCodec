@@ -1,10 +1,7 @@
 #include "ICSP_Codec_Encoder.h"
 
-
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
-
-
 
 FILE* gfp;
 char filename[256];
@@ -239,6 +236,13 @@ int splitBlocks(IcspCodec &icC, int blocksize1, int blocksize2)
 	return 0;
 }
 
+/* message function */
+void print_frame_end_message(int curr_frame_num, int frame_type)
+{
+	char frm_type = (frame_type == I_FRAME) ? 'I' : ((frame_type == P_FRAME) ? 'P' : 'B');
+	printf("Encoding FRAME_%03d(%c) done!\n", curr_frame_num, frm_type);
+}
+
 /* intra prediction function */
 int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 {
@@ -326,10 +330,11 @@ int allintraPrediction(FrameData* frames, int nframes, int QstepDC, int QstepAC)
 		fprintf(gfp, "%lf\n", DPCM_Time_PerFrame);
 		DPCM_Time_PerFrame = 0;*/
 
-
 		intraImgReconstruct(frm);
 		//entropyCoding(frm, INTRA);
 
+		print_frame_end_message(numOfFrm, I_FRAME);
+		
 		/* free */
 		for(int numOfblck16=0; numOfblck16<totalblck; numOfblck16++)
 		{
