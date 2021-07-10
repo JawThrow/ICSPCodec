@@ -205,13 +205,16 @@ public:
 	~IcspCodec(); 
 };
 
+/* parsing command function */
+void parsing_command(int argc, char *argv[], int* QPDC, int* QPAC, int* intraPeriod);
+
+/* message function */
+void print_frame_end_message(int curr_frame_num, int frame_type);
+
 /* initiation function */
 int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe, const int width, const int height);
 int splitFrames(IcspCodec &icC);
 int splitBlocks(IcspCodec &IcC, int blocksize1, int blocksize2);
-
-/* message function */
-void print_frame_end_message(int curr_frame_num, int frame_type);
 
 /* intra prediction function */
 void intraPrediction(FrameData& frm, int QstepDC, int QstepAC);

@@ -37,6 +37,19 @@ namespace TimeCheck
 }
 #endif
 
+/* parsing command function */
+void parsing_command(int argc, char *argv[], int* QPDC, int* QPAC, int* intraPeriod)
+{
+	
+}
+
+/* message function */
+void print_frame_end_message(int curr_frame_num, int frame_type)
+{
+	char frm_type = (frame_type == I_FRAME) ? 'I' : ((frame_type == P_FRAME) ? 'P' : 'B');
+	printf("Encoding FRAME_%03d(%c) done!\n", curr_frame_num, frm_type);
+}
+
 /* initiation function*/
 int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe,  const int width, const int height)
 {
@@ -234,13 +247,6 @@ int splitBlocks(IcspCodec &icC, int blocksize1, int blocksize2)
 	}
 
 	return 0;
-}
-
-/* message function */
-void print_frame_end_message(int curr_frame_num, int frame_type)
-{
-	char frm_type = (frame_type == I_FRAME) ? 'I' : ((frame_type == P_FRAME) ? 'P' : 'B');
-	printf("Encoding FRAME_%03d(%c) done!\n", curr_frame_num, frm_type);
 }
 
 /* intra prediction function */
