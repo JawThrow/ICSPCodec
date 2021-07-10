@@ -5,7 +5,6 @@
 #include <memory.h>
 #include <time.h>
 #include <limits.h>
-#include <immintrin.h>
 #include <iomanip>
 using namespace std;
 

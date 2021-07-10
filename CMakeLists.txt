@@ -25,7 +25,7 @@ SET ( SRC_FILES
 INCLUDE_DIRECTORIES ( )
  
 # 공통 컴파일 옵션, 링크 옵션
-ADD_COMPILE_OPTIONS ( -g -Wall -msse -msse4 -mavx2 -mavx)
+ADD_COMPILE_OPTIONS ( -g -Wall )
 SET ( CMAKE_EXE_LINKER_FLAGS "-static -Wl,--gc-sections" )
  
 # 공통 링크 라이브러리 디렉토리 (-L)
