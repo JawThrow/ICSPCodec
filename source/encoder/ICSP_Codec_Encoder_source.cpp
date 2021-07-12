@@ -38,9 +38,18 @@ namespace TimeCheck
 #endif
 
 /* parsing command function */
-void parsing_command(int argc, char *argv[], int* QPDC, int* QPAC, int* intraPeriod)
+static void init_cmd_options(cmd_options_t* cmd)
 {
-	
+	memset(cmd->yuv_fname, 0, sizeof(char)*256);
+	cmd->QP_DC = 0;
+	cmd->QP_AC = 0;
+	cmd->intra_period = 0;
+}
+
+void set_command_options(int argc, char *argv[], cmd_options_t *cmd)
+{
+	init_cmd_options(cmd);
+
 }
 
 /* message function */

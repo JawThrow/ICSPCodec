@@ -4,14 +4,14 @@ extern char filename[256];
 // argv: [0]:ICSPCodec [1]sequence_fname [2]nframes [3]QPDC [4]QPAC [5]IntraPeroid
 int main(int argc, char *argv[])
 {	
-	
+	cmd_options_t cmd;
 	char *imgfname = argv[1]; 
 	int nframes = atoi(argv[2]);	
 	int QPDC = atoi(argv[3]);
 	int QPAC = atoi(argv[4]);
 	int intraPeriod = atoi(argv[5]);
 
-	parsing_command(argc, argv, &nframes, &QPDC, &QPAC, &intraPeriod);
+	set_command_options(argc, argv, &cmd);
 
 	// split sequence name for saving compressed output
 	int idx = 0;

@@ -27,6 +27,14 @@ typedef enum
 	B_FRAME=2
 }E_FRAME_TYPE;
 
+typedef struct 
+{
+	char yuv_fname[256];
+	int QP_DC;
+	int QP_AC;
+	int intra_period;
+}cmd_options_t;
+
 struct Block8d { double block[8][8]; };
 struct Block8i { int block[8][8]; };
 struct Block8u { unsigned char block[8][8];};
@@ -206,7 +214,7 @@ public:
 };
 
 /* parsing command function */
-void parsing_command(int argc, char *argv[], int* QPDC, int* QPAC, int* intraPeriod);
+void set_command_options(int argc, char *argv[], cmd_options_t* cmd);
 
 /* message function */
 void print_frame_end_message(int curr_frame_num, int frame_type);
