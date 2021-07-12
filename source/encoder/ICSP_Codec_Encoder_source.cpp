@@ -52,6 +52,9 @@ void print_error_message(int err_type, char* func_name)
 		case UNENOUGH_PARAM:
 			printf("[ERROR] unenough parameters in %s\n", func_name);
 			break;
+		case UNCORRECT_PARAM:
+			printf("[ERROR] uncorrect parameters in %s\n", func_name);
+			break;
 		default:
 			printf("[ERROR] unknown reason\n");
 	}
@@ -72,15 +75,65 @@ static void init_cmd_options(cmd_options_t* cmd)
     // -w: width
     // -h: height
     // -n: the number of frames(default is 1)
-	// -q : QP of DC and AC
+	// -q: QP of DC and AC
 	// --qpdc : QP of DC
 	// --qpac : QP of AC
+	// --intraPeriod: period of intra frame(0: All intra)
 static int parsing_command(int argc, char *argv[], cmd_options_t *cmd)
 {
 	if (argc < 2)
 		return UNENOUGH_PARAM;
 	
-		
+	
+	for(int i=1; i<argc; i++)
+	{		
+		char option[256];
+		memcpy(option, argv[i], strlen(argv[i])+1);
+		if (option[0] == '-')
+		{
+			if(option[1] == '-')
+			{
+				char long_name[256];
+				memcpy(long_name, &option[2], strlen(&option[2])+1);
+				if (strcmp(long_name, "qpdc") == 0)
+				{
+					cmd->QP_DC = atoi(argv[i+1]);
+				}
+				else if (strcmp(long_name, "qpac") == 0)
+				{
+					cmd->QP_AC = atoi(argv[i+1]);
+				}
+				else if (strcmp(long_name, "intraPeriod") == 0)
+				{
+					cmd->intra_period = atoi(argv[i+1]);
+				}
+				else
+				{
+					return UNCORRECT_PARAM;
+				}
+			}
+			else
+			{
+				if (option[1] == 'i')
+				{
+					memcpy(cmd->yuv_fname, argv[i+1], sizeof(char)*256);
+				}
+				else if (option[1] == 'n')
+				{
+					cmd->intra_period = atoi(argv[i+1]);
+				}
+				else if (option[1] == 'q')
+				{
+					cmd->QP_AC = atoi(argv[i+1]);
+					cmd->QP_DC = atoi(argv[i+1]);
+				}
+				else
+				{
+					return UNCORRECT_PARAM;
+				}
+			}
+		}
+	}
 
 	return SUCCESS;
 }

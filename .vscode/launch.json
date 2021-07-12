@@ -10,10 +10,15 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/Debug/ICSPCodec",
             "args": [
+                "-i",
                 "data/akiyo_cif(352X288)_300f.yuv",
+                "-n",
                 "3",
+                "--qpdc",
                 "16",
+                "--qpac",
                 "16",
+                "--intraPeriod",
                 "0"
             ],
             "stopAtEntry": false,

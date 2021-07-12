@@ -30,7 +30,8 @@ typedef enum
 typedef enum
 {
 	SUCCESS=0,
-	UNENOUGH_PARAM
+	UNENOUGH_PARAM,
+	UNCORRECT_PARAM
 }E_ERROR_TYPE;
 
 typedef struct 
