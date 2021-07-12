@@ -37,6 +37,27 @@ namespace TimeCheck
 }
 #endif
 
+
+/* message function */
+void print_frame_end_message(int curr_frame_num, int frame_type)
+{
+	char frm_type = (frame_type == I_FRAME) ? 'I' : ((frame_type == P_FRAME) ? 'P' : 'B');
+	printf("Encoding FRAME_%03d(%c) done!\n", curr_frame_num, frm_type);
+}
+
+void print_error_message(int err_type, char* func_name)
+{
+	switch(err_type)
+	{
+		case UNENOUGH_PARAM:
+			printf("[ERROR] unenough parameters in %s\n", func_name);
+			break;
+		default:
+			printf("[ERROR] unknown reason\n");
+	}
+	exit(-1);
+}
+
 /* parsing command function */
 static void init_cmd_options(cmd_options_t* cmd)
 {
@@ -46,18 +67,35 @@ static void init_cmd_options(cmd_options_t* cmd)
 	cmd->intra_period = 0;
 }
 
+// parse command and extract cfg options
+    // -i: input
+    // -w: width
+    // -h: height
+    // -n: the number of frames(default is 1)
+	// -q : QP of DC and AC
+	// --qpdc : QP of DC
+	// --qpac : QP of AC
+static int parsing_command(int argc, char *argv[], cmd_options_t *cmd)
+{
+	if (argc < 2)
+		return UNENOUGH_PARAM;
+	
+		
+
+	return SUCCESS;
+}
+
 void set_command_options(int argc, char *argv[], cmd_options_t *cmd)
 {
 	init_cmd_options(cmd);
 
+	int ret = parsing_command(argc, argv, cmd);
+	if (ret != SUCCESS)
+	{
+		print_error_message(ret, "parsing_command");
+	}
 }
 
-/* message function */
-void print_frame_end_message(int curr_frame_num, int frame_type)
-{
-	char frm_type = (frame_type == I_FRAME) ? 'I' : ((frame_type == P_FRAME) ? 'P' : 'B');
-	printf("Encoding FRAME_%03d(%c) done!\n", curr_frame_num, frm_type);
-}
 
 /* initiation function*/
 int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe,  const int width, const int height)

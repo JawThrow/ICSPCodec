@@ -27,6 +27,12 @@ typedef enum
 	B_FRAME=2
 }E_FRAME_TYPE;
 
+typedef enum
+{
+	SUCCESS=0,
+	UNENOUGH_PARAM
+}E_ERROR_TYPE;
+
 typedef struct 
 {
 	char yuv_fname[256];
