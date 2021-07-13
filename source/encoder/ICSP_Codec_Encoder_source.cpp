@@ -82,8 +82,7 @@ static void init_cmd_options(cmd_options_t* cmd)
 static int parsing_command(int argc, char *argv[], cmd_options_t *cmd)
 {
 	if (argc < 2)
-		return UNENOUGH_PARAM;
-	
+		return UNENOUGH_PARAM;	
 	
 	for(int i=1; i<argc; i++)
 	{		
@@ -120,7 +119,7 @@ static int parsing_command(int argc, char *argv[], cmd_options_t *cmd)
 				}
 				else if (option[1] == 'n')
 				{
-					cmd->intra_period = atoi(argv[i+1]);
+					cmd->nframes = atoi(argv[i+1]);
 				}
 				else if (option[1] == 'q')
 				{
