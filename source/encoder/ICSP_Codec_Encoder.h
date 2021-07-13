@@ -336,13 +336,11 @@ inline void IcspCodec::init(int nframe, char* imageFname, int width, int height,
 	
 inline void IcspCodec::encoding(int intraPeriod)
 {
-	clock_t t = clock();
-
 	if( intraPeriod==ALL_INTRA )
 	{
 		allintraPrediction(frames, YCbCr.nframe, QstepDC, QstepAC);
-		//makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTRA);
-		//checkResultFrames(frames,  YCbCr.width, YCbCr.height, YCbCr.nframe, INTRA, SAVE_YUV);
+		makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTRA);
+		checkResultFrames(frames, YCbCr.width, YCbCr.height, YCbCr.nframe, INTRA, SAVE_YUV);
 	}
 	else
 	{
@@ -361,8 +359,8 @@ inline void IcspCodec::encoding(int intraPeriod)
 			}
 			print_frame_end_message(n, frame_type);
 		}		
-		//makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTER);
-		//checkResultFrames(frames, YCbCr.width, YCbCr.height,YCbCr.nframe, INTER, SAVE_YUV);
+		makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTER);
+		checkResultFrames(frames, YCbCr.width, YCbCr.height,YCbCr.nframe, INTER, SAVE_YUV);
 	}
 	
 }

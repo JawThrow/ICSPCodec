@@ -3,3 +3,5 @@ build/Debug/cmake_install.cmake
 build/Debug/CMakeFiles/
 build/Debug/Makefile
 build/Debug/ICSPCodec
+*.yuv
+data/*.bin

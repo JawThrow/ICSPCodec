@@ -1,13 +1,12 @@
 #include "ICSP_Codec_Encoder.h"
 
 extern char filename[256];
-// argv: [0]:ICSPCodec [1]sequence_fname [2]nframes [3]QPDC [4]QPAC [5]IntraPeroid
 int main(int argc, char *argv[])
 {	
 	cmd_options_t options;	
 	set_command_options(argc, argv, &options);
 
-	// split sequence name for saving compressed output
+	// split sequence name for saving bitstream output
 	char *yuv_fname = options.yuv_fname;
 	int idx = 0;
 	char* p = yuv_fname;

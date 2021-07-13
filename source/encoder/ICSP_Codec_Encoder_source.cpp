@@ -1822,9 +1822,9 @@ void intraImgReconstruct(FrameData &frm)
 	int width = splitWidth*blocksize1;
 	int height = splitHeight*blocksize1;
 
-	unsigned char* Ychannel = (unsigned char*)calloc(width*height, sizeof(unsigned char));
-	unsigned char* Cbchannel = (unsigned char *) calloc((width/2) * (height/2), sizeof(unsigned char));
-	unsigned char* Crchannel = (unsigned char *) calloc((width/2) * (height/2), sizeof(unsigned char));
+	unsigned char* Ychannel  = (unsigned char*)calloc(width*height, sizeof(unsigned char));
+	unsigned char* Cbchannel = (unsigned char*)calloc((width/2) * (height/2), sizeof(unsigned char));
+	unsigned char* Crchannel = (unsigned char*)calloc((width/2) * (height/2), sizeof(unsigned char));
 
 	frm.reconstructedY  = (unsigned char*) malloc(sizeof(unsigned char)*width*height);				//checkResultFrames�Լ����� ��ȯ
 	frm.reconstructedCb = (unsigned char*) malloc(sizeof(unsigned char)*(width/2)*(height/2));		//checkResultFrames���� ��ȯ
@@ -4771,7 +4771,6 @@ void makebitstream(FrameData* frames, int nframes, int height, int width, int Qs
 	}
 	else if(predmode==INTER)
 	{
-		// ���⼭ �޸𸮸� ����� ����, intraBody�� interBody�� �����ؼ� �޸� ����ϰ� ���� ������ �ۿ��� ��ȯ
 		int cntbits = 0;
 		int maxbits = frames->splitHeight * frames->splitWidth * frames->blocks->blocksize1 * frames->blocks->blocksize1 * 8 * nframes;
 		unsigned char* tempFrame = (unsigned char*)malloc(sizeof(unsigned char)*(maxbits/8));
@@ -4796,7 +4795,6 @@ void makebitstream(FrameData* frames, int nframes, int height, int width, int Qs
 			}
 		}
 		fwrite(tempFrame, (cntbits/8)+1, 1, fp);
-		//cout << "��ü bits: " << cntbits << " ���� ����Ʈ��: " << (cntbits/8)+1 << endl;
 		free(tempFrame);
 	}
 	
@@ -6280,13 +6278,6 @@ void checkResultYUV(unsigned char *Y, unsigned char *Cb, unsigned char *Cr, int 
 void checkResultFrames(FrameData* frm, int width, int height, int nframe, int predtype, int chtype)
 {
 	FILE* output_fp;
-	char CIF_path[256] = "data";
-
-	char output_pred_name[256]; 
-	if(predtype == INTRA)
-		sprintf(output_pred_name, "check_test_intra");
-	else if(predtype == INTER)
-		sprintf(output_pred_name, "check_test_inter");
 
 	char output_ch_name[256];
 	if(chtype == SAVE_Y)
@@ -6296,8 +6287,7 @@ void checkResultFrames(FrameData* frm, int width, int height, int nframe, int pr
 
 
 	char output_fname[256];
-	//sprintf(output_fname, "%s\\%s%s", CIF_path, output_pred_name, output_ch_name);
-	sprintf(output_fname, "output\\%s%s", output_pred_name, output_ch_name);
+	sprintf(output_fname, "test%s", output_ch_name);
 
 	output_fp = fopen(output_fname, "wb");
 	if(output_fp==NULL)
