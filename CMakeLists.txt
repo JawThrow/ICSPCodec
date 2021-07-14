@@ -18,6 +18,7 @@ SET ( OUTPUT_ELF
 SET ( SRC_FILES
         source/encoder/encode.cpp
         source/encoder/ICSP_Codec_Encoder_source.cpp
+        source/encoder/ICSPCodec.cpp
         )
  
  
