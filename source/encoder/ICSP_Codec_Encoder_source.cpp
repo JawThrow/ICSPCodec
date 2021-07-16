@@ -45,6 +45,21 @@ void print_frame_end_message(int curr_frame_num, int frame_type)
 	printf("Encoding FRAME_%03d(%c) done!\n", curr_frame_num, frm_type);
 }
 
+void print_help_message()
+{
+	printf("usage: ./ICSPCodec [option] [values]\n");
+	printf("-i : input yuv sequence\n");
+	printf("-w : width\n");
+	printf("-h : height\n");
+	printf("-n : the number of frames(default is 1)\n");
+	printf("-q : QP of DC and AC (16, 8, or 1)\n");
+	printf("-h : help message\n");
+	printf("--help : help message\n");
+	printf("--qpdc : QP of DC (16, 8, or 1)\n");
+	printf("--qpac : QP of AC (16, 8, or 1)\n");
+	printf("--intraPeriod: period of intra frame(0: All intra)\n");
+}
+
 void print_error_message(int err_type, char* func_name)
 {
 	switch(err_type)
@@ -106,6 +121,11 @@ static int parsing_command(int argc, char *argv[], cmd_options_t *cmd)
 				{
 					cmd->intra_period = atoi(argv[i+1]);
 				}
+				else if (strcmp(long_name, "help") == 0)
+				{
+					print_help_message();
+					exit(0);
+				}
 				else
 				{
 					return UNCORRECT_PARAM;
@@ -126,6 +146,11 @@ static int parsing_command(int argc, char *argv[], cmd_options_t *cmd)
 					cmd->QP_AC = atoi(argv[i+1]);
 					cmd->QP_DC = atoi(argv[i+1]);
 				}
+				else if (option[1] =='h')
+				{
+					print_help_message();
+					exit(0);
+				}
 				else
 				{
 					return UNCORRECT_PARAM;
@@ -139,6 +164,7 @@ static int parsing_command(int argc, char *argv[], cmd_options_t *cmd)
 
 void set_command_options(int argc, char *argv[], cmd_options_t *cmd)
 {
+
 	init_cmd_options(cmd);
 
 	int ret = parsing_command(argc, argv, cmd);

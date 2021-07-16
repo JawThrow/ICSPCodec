@@ -225,6 +225,7 @@ void set_command_options(int argc, char *argv[], cmd_options_t* cmd);
 
 /* message function */
 void print_frame_end_message(int curr_frame_num, int frame_type);
+void print_help_message();
 
 /* initiation function */
 int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe, const int width, const int height);
