@@ -1,5 +1,5 @@
 ## ICSP Codec
-### Introduction
+# Introduction
 This is a implementation of video codec based on C/C++. <br />
 This codec is ICSP codec because I implemented this codec when I was working in the ICSP lab(http://icsp.hanyang.ac.kr).<br />
 ICSP Codec has been implemented based on basic video compression theories.
@@ -13,10 +13,19 @@ The characteristics of the ICSP codec are as follows.
 - Only Supporting YUV420
 - Only Supporting CIF(352x288)
 
-
-### ICSP Codec Encoding Process
+# Build
+<pre>
+<code>
+> cd build/Debug(or Release)
+> ./build.sh
+> make
+</code>
+</pre>
+Release is not available yet.
+# ICSP Codec Encoding Process
 ![Encoding Proces](https://user-images.githubusercontent.com/36951642/57179748-f59a9880-6ebb-11e9-9c6d-5857f45d5545.PNG)
 
+# Algorithm
 ### Intra Prediction
 ICSP codec supports three-direction prediction mode in intra prediction. Vectical, Horizontal, DC mode.
 
