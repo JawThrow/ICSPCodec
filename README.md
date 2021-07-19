@@ -9,7 +9,6 @@ The characteristics of the ICSP codec are as follows.
 - All Intra Prediction Mode
 - DCT Transform / Quantization
 - Entropy Coding
-- AVX2 Intrinsics Parellel Processing
 - Only Supporting YUV420
 - Only Supporting CIF(352x288)
 
