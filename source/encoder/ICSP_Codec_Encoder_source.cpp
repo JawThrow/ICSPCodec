@@ -44,7 +44,6 @@ void print_frame_end_message(int curr_frame_num, int frame_type)
 	char frm_type = (frame_type == I_FRAME) ? 'I' : ((frame_type == P_FRAME) ? 'P' : 'B');
 	printf("Encoding FRAME_%03d(%c) done!\n", curr_frame_num, frm_type);
 }
-
 void print_help_message()
 {
 	printf("usage: ./ICSPCodec [option] [values]\n");
@@ -59,7 +58,6 @@ void print_help_message()
 	printf("--qpac : QP of AC (16, 8, or 1)\n");
 	printf("--intraPeriod: period of intra frame(0: All intra)\n");
 }
-
 void print_error_message(int err_type, char* func_name)
 {
 	switch(err_type)
@@ -86,14 +84,6 @@ static void init_cmd_options(cmd_options_t* cmd)
 }
 
 // parse command and extract cfg options
-    // -i: input
-    // -w: width
-    // -h: height
-    // -n: the number of frames(default is 1)
-	// -q: QP of DC and AC
-	// --qpdc : QP of DC
-	// --qpac : QP of AC
-	// --intraPeriod: period of intra frame(0: All intra)
 static int parsing_command(int argc, char *argv[], cmd_options_t *cmd)
 {
 	if (argc < 2)
@@ -161,7 +151,6 @@ static int parsing_command(int argc, char *argv[], cmd_options_t *cmd)
 
 	return SUCCESS;
 }
-
 void set_command_options(int argc, char *argv[], cmd_options_t *cmd)
 {
 
@@ -171,6 +160,30 @@ void set_command_options(int argc, char *argv[], cmd_options_t *cmd)
 	if (ret != SUCCESS)
 	{
 		print_error_message(ret, "parsing_command");
+	}
+}
+
+/* multi threading functions */
+void init_thread(EncThread_t &Eth)
+{
+	
+}
+
+void* encoding_thread(void* arg)
+{
+	EncThread_t *Eth = (EncThread_t *)arg;	
+	FrameData* pFrames = Eth->pFrames;
+	int nFrames = Eth->nFrames;
+	int intra_frame_num = Eth->start_frame_num;	
+	int end_frame_num = Eth->end_frame_num;		
+	int QP_DC = Eth->QP_DC;
+	int QP_AC = Eth->QP_AC;
+
+	intraPrediction(pFrames[intra_frame_num], QP_DC, QP_AC);
+
+	for(int inter_frame_num = intra_frame_num + 1; inter_frame_num < end_frame_num; inter_frame_num++)
+	{
+		interPrediction(pFrames[inter_frame_num], QP_DC, QP_AC);
 	}
 }
 

@@ -227,6 +227,9 @@ void set_command_options(int argc, char *argv[], cmd_options_t* cmd);
 void print_frame_end_message(int curr_frame_num, int frame_type);
 void print_help_message();
 
+/* multi-thread functions */
+void *encoding_thread(void* arg);
+
 /* initiation function */
 int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe, const int width, const int height);
 int splitFrames(IcspCodec &icC);
