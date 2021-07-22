@@ -13,7 +13,7 @@ typedef struct
     int nthreads;
 }thread_pool_t;
 
-int thread_pool_queue_init(thread_pool_t* pool, int nthreads);
-int thread_pool_queue_end(thread_pool_t* pool);
+int thread_pool_init(thread_pool_t* pool, int nthreads);
+int thread_pool_end(thread_pool_t* pool);
 
 #endif

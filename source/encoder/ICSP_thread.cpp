@@ -2,7 +2,7 @@
 #include "ICSP_Codec_Encoder.h"
 #include <stdlib.h>
 
-int thread_pool_queue_init(thread_pool_t* pool, int nthreads)
+int thread_pool_init(thread_pool_t* pool, int nthreads)
 {
     pool = (thread_pool_t*) malloc(sizeof(thread_pool_t));
 
@@ -22,7 +22,7 @@ int thread_pool_queue_init(thread_pool_t* pool, int nthreads)
     return SUCCESS;
 }
 
-int thread_pool_queue_end(thread_pool_t* pool)
+int thread_pool_end(thread_pool_t* pool)
 {
     if(pool->p != NULL)
     {

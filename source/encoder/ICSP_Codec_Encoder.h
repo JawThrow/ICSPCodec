@@ -44,6 +44,8 @@ typedef struct
 	int QP_DC;
 	int QP_AC;
 	int intra_period;
+	int multi_thread_mode;
+	int nthreads;
 }cmd_options_t;
 
 struct Block8d { double block[8][8]; };
@@ -228,7 +230,7 @@ public:
 
 public:
 	void init(int nframe, char* imgfname, int width, int height, int QstepDC, int QstepAC);
-	void encoding(int intraPeriod);
+	void encoding(cmd_options_t* opt);
 	~IcspCodec(); 
 };
 
