@@ -68,6 +68,9 @@ void print_error_message(int err_type, char* func_name)
 		case UNCORRECT_PARAM:
 			printf("[ERROR] uncorrect parameters in %s\n", func_name);
 			break;
+		case FAIL_MEM_ALLOC:
+			printf("[ERROR] fail memory allocation in %s\n", func_name);
+			break;
 		default:
 			printf("[ERROR] unknown reason\n");
 	}
@@ -164,11 +167,6 @@ void set_command_options(int argc, char *argv[], cmd_options_t *cmd)
 }
 
 /* multi threading functions */
-void init_thread(EncThread_t &Eth)
-{
-	
-}
-
 void* encoding_thread(void* arg)
 {
 	EncThread_t *Eth = (EncThread_t *)arg;	
@@ -183,8 +181,11 @@ void* encoding_thread(void* arg)
 
 	for(int inter_frame_num = intra_frame_num + 1; inter_frame_num < end_frame_num; inter_frame_num++)
 	{
-		interPrediction(pFrames[inter_frame_num], QP_DC, QP_AC);
+		interPrediction(pFrames[inter_frame_num], pFrames[inter_frame_num-1], QP_DC, QP_AC);
 	}
+	
+	// encoding threading done
+	// return to thread Queue
 }
 
 

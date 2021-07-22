@@ -30,6 +30,8 @@ void IcspCodec::init(int nframe, char* imageFname, int width, int height, int Qs
 	
 void IcspCodec::encoding(int intraPeriod)
 {
+	
+
 	if( intraPeriod==ALL_INTRA )
 	{
 		allintraPrediction(frames, YCbCr.nframe, QstepDC, QstepAC);

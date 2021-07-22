@@ -19,6 +19,7 @@ SET ( SRC_FILES
         source/encoder/encoder_main.cpp
         source/encoder/ICSP_Codec_Encoder_source.cpp
         source/encoder/ICSPCodec.cpp
+        source/encoder/ICSP_thread.cpp
         )
  
  
@@ -33,7 +34,7 @@ SET ( CMAKE_EXE_LINKER_FLAGS "-static -Wl,--gc-sections" )
 LINK_DIRECTORIES ( /usr/lib )
  
 # "Debug" 형상 한정 컴파일 옵션, 링크 옵션
-SET ( CMAKE_C_FLAGS_DEBUG "-DDEBUG -DC_FLAGS" )
+SET ( CMAKE_C_FLAGS_DEBUG "-DDEBUG -DC_FLAGS -pthread" )
 SET ( CMAKE_EXE_LINKER_FLAGS_DEBUG "-DDEBUG -DLINKER_FLAGS" )
  
 # "Release" 형상 한정 컴파일 옵션, 링크 옵션
