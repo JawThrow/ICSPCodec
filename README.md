@@ -143,7 +143,6 @@ I will describe detail comparison result in following chapter.
 |table|28.51|12.81|45%|
 |**Average**|x|x|**43%**|
 
-I will upload comparison of operation speed in each encoding process in details.
 ### Contents
 | Folder | description |
 |---|---|
