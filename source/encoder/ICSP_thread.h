@@ -1,6 +1,8 @@
 #ifndef ICSP_THREAD
 #define ICSP_THREAD
 
+#include <pthread.h>
+
 typedef struct 
 {
     void *(*encoding_function)(void*);
@@ -13,7 +15,7 @@ typedef struct
     int nthreads;
 }thread_pool_t;
 
-int thread_pool_init(thread_pool_t* pool, int nthreads);
-int thread_pool_end(thread_pool_t* pool);
+void thread_pool_init(thread_pool_t* pool, int nthreads);
+void thread_pool_end(thread_pool_t* pool);
 
 #endif

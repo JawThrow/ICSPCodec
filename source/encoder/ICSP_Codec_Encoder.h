@@ -239,6 +239,7 @@ void set_command_options(int argc, char *argv[], cmd_options_t* cmd);
 
 /* message function */
 void print_frame_end_message(int curr_frame_num, int frame_type);
+void print_error_message(int err_type, char* func_name);
 void print_help_message();
 
 /* multi-thread functions */

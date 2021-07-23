@@ -5,3 +5,4 @@ build/Debug/Makefile
 build/Debug/ICSPCodec
 *.yuv
 data/*.bin
+.vscode/settings.json

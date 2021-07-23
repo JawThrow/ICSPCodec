@@ -2,13 +2,13 @@
 #include "ICSP_Codec_Encoder.h"
 #include <stdlib.h>
 
-int thread_pool_init(thread_pool_t* pool, int nthreads)
+void thread_pool_init(thread_pool_t* pool, int nthreads)
 {
     pool = (thread_pool_t*) malloc(sizeof(thread_pool_t));
 
     if(pool == NULL)
     {
-        return FAIL_MEM_ALLOC;
+        print_error_message(FAIL_MEM_ALLOC, "thread_pool_init");
     }
 
     pool->nthreads = nthreads;
@@ -16,13 +16,11 @@ int thread_pool_init(thread_pool_t* pool, int nthreads)
 
     if(pool->p == NULL)
     {
-        return FAIL_MEM_ALLOC;
+        print_error_message(FAIL_MEM_ALLOC, "thread_pool_init");
     }
-
-    return SUCCESS;
 }
 
-int thread_pool_end(thread_pool_t* pool)
+void thread_pool_end(thread_pool_t* pool)
 {
     if(pool->p != NULL)
     {
@@ -34,7 +32,4 @@ int thread_pool_end(thread_pool_t* pool)
     {
         free(pool);
     }
-    
-    return SUCCESS;
-
 }
