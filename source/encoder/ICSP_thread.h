@@ -18,4 +18,14 @@ typedef struct
 void thread_pool_init(thread_pool_t* pool, int nthreads);
 void thread_pool_end(thread_pool_t* pool);
 
+typedef struct 
+{
+	FrameData* pFrames;
+	int nFrames;
+	int start_frame_num;
+	int end_frame_num;
+	int QP_DC;
+	int QP_AC;
+}encoding_jobs_t;
+
 #endif

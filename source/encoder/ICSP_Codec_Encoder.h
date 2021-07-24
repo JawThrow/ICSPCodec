@@ -197,16 +197,6 @@ const float costable[8][8] =
 	 0.19509,   -0.55557,    0.83147,  -0.980785,  0.980785, -0.83147,   0.55557,  -0.19509};	
 const double irt2 = 1.0/sqrt(2.0); // inverse square root 2
 
-typedef struct 
-{
-	FrameData* pFrames;
-	int nFrames;
-	int start_frame_num;
-	int end_frame_num;
-	int QP_DC;
-	int QP_AC;
-}EncThread_t;
-
 #pragma pack(push, 1)	
 struct header
 {
