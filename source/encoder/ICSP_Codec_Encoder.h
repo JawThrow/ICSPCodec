@@ -40,7 +40,7 @@ typedef enum
 typedef struct 
 {
 	char yuv_fname[256];
-	int nframes;
+	int total_frames;
 	int QP_DC;
 	int QP_AC;
 	int intra_period;

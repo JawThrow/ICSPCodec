@@ -32,7 +32,7 @@ void IcspCodec::init(int nframe, char* imageFname, int width, int height, int Qs
 void IcspCodec::encoding(cmd_options_t* opt)
 {
 	
-	if(!opt->multi_thread_mode) // multi-thread mode
+	if(!opt->multi_thread_mode) // single-thread mode
 	{
 		int intraPeriod = opt->intra_period;
 		if( intraPeriod==ALL_INTRA )
@@ -62,11 +62,19 @@ void IcspCodec::encoding(cmd_options_t* opt)
 			checkResultFrames(frames, YCbCr.width, YCbCr.height,YCbCr.nframe, INTER, SAVE_YUV);
 		}
 	}
-	else
+	else // multi-thread mode
 	{		
 		thread_pool_t* pool;
 		thread_pool_init(pool, opt->nthreads);
-		
+		// thread_pool_start();
+		// create job queue
+		//    total_job = total_frame / intra_period
+		//	  start = 0 += intra_period
+		//	  end = start + intra_period-1
+		// 	  other encoding parameters
+		//    push job into job_queue
+		// start multi-threading!
+		//    throw encoding function and 
 		thread_pool_end(pool);
 	}
 

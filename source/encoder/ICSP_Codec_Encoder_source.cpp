@@ -132,7 +132,7 @@ static int parsing_command(int argc, char *argv[], cmd_options_t *cmd)
 				}
 				else if (option[1] == 'n')
 				{
-					cmd->nframes = atoi(argv[i+1]);
+					cmd->total_frames = atoi(argv[i+1]);
 				}
 				else if (option[1] == 'q')
 				{

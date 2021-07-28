@@ -33,8 +33,24 @@ void thread_pool_end(thread_pool_t* pool)
     }    
 }
 
-void thread_pool_start(thread_pool_t* pool, int nthreads, void* (*thread_function)(void *), void* args)
+void thread_pool_start(thread_pool_t* pool, int nthreads, cmd_options_t* opt)
 {
+    // create job queue
+    int intra_period = opt->intra_period;
+    int total_jobs = opt->total_frames / intra_period;
+    int QP_DC = opt->QP_DC;
+    int QP_AC = opt->QP_AC;
+    for(int njobs=0; njobs<total_jobs; njobs++)
+    {
+        encoding_jobs_t jobs;
+        jobs.start_frame_num = njobs * intra_period;
+        jobs.end_frame_num = jobs.start_frame_num + intra_period - 1;
+        jobs.QP_DC = QP_DC;
+        jobs.QP_AC = QP_AC;
+        // frames in global or 
+    }
+
+    // create pthread
     for(int i=0; i<nthreads; i++)
     {
         
