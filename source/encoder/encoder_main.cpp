@@ -17,8 +17,8 @@ int main(int argc, char *argv[])
 	filename[idx] = 0;
 
 	IcspCodec icspCodec;
-	icspCodec.init(options.nframes, options.yuv_fname, 352, 288, options.QP_DC, options.QP_AC);
-	icspCodec.encoding(options.intra_period);
+	icspCodec.init(options.total_frames, options.yuv_fname, 352, 288, options.QP_DC, options.QP_AC);
+	icspCodec.encoding(&options);
 	
 	return 0;
 }
