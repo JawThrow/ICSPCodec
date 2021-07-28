@@ -183,9 +183,6 @@ void* encoding_thread(void* arg)
 	{
 		interPrediction(pFrames[inter_frame_num], pFrames[inter_frame_num-1], QP_DC, QP_AC);
 	}
-	
-	// encoding threading done
-	// return to thread Queue
 }
 
 

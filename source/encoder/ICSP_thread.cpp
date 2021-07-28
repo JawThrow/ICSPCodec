@@ -12,24 +12,31 @@ void thread_pool_init(thread_pool_t* pool, int nthreads)
     }
 
     pool->nthreads = nthreads;
-    pool->p = (thread_t*)malloc(sizeof(thread_t)*nthreads);
+    pool->thread_list = (thread_t*)malloc(sizeof(thread_t)*nthreads);
 
-    if(pool->p == NULL)
+    if(pool->thread_list == NULL)
     {
         print_error_message(FAIL_MEM_ALLOC, "thread_pool_init");
-    }
+    }    
 }
 
 void thread_pool_end(thread_pool_t* pool)
 {
-    if(pool->p != NULL)
+    if(pool != NULL)
     {
-        for(int i=0; i<pool->nthreads; i++)
-            free(&pool->p[i]);
-    }
-
-    if(pool->p != NULL)
-    {
+        if(pool->thread_list != NULL)
+        {
+            for(int i=0; i<pool->nthreads; i++)
+                free(&pool->thread_list[i]);
+        }
         free(pool);
+    }    
+}
+
+void thread_pool_start(thread_pool_t* pool, int nthreads, void* (*thread_function)(void *), void* args)
+{
+    for(int i=0; i<nthreads; i++)
+    {
+        
     }
 }

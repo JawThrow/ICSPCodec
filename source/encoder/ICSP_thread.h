@@ -5,13 +5,15 @@
 
 typedef struct 
 {
+	pthread_t pid;
+	int thread_idx; // index in thread_list
     void *(*encoding_function)(void*);
     void *arg;
 }thread_t;
 
 typedef struct 
 {
-    thread_t* p;
+    thread_t* thread_list;
     int nthreads;
 }thread_pool_t;
 
