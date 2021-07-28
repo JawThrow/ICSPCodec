@@ -1,7 +1,8 @@
 #ifndef ICSP_THREAD
 #define ICSP_THREAD
-
 #include <pthread.h>
+#include <queue>
+using namespace std;
 
 typedef struct 
 {
@@ -15,6 +16,7 @@ typedef struct
 {
     thread_t* thread_list;
     int nthreads;
+	queue<encoding_jobs_t> job_queue;
 }thread_pool_t;
 
 void thread_pool_init(thread_pool_t* pool, int nthreads);
