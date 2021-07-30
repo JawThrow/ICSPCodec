@@ -169,13 +169,7 @@ void set_command_options(int argc, char *argv[], cmd_options_t *cmd)
 /* multi threading functions */
 void* encoding_thread(void* arg)
 {
-	EncThread_t *Eth = (EncThread_t *)arg;	
-	FrameData* pFrames = Eth->pFrames;
-	int nFrames = Eth->nFrames;
-	int intra_frame_num = Eth->start_frame_num;	
-	int end_frame_num = Eth->end_frame_num;		
-	int QP_DC = Eth->QP_DC;
-	int QP_AC = Eth->QP_AC;
+	
 
 	intraPrediction(pFrames[intra_frame_num], QP_DC, QP_AC);
 

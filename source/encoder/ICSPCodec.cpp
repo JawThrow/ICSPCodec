@@ -66,15 +66,7 @@ void IcspCodec::encoding(cmd_options_t* opt)
 	{		
 		thread_pool_t* pool;
 		thread_pool_init(pool, opt->nthreads);
-		// thread_pool_start();
-		// create job queue
-		//    total_job = total_frame / intra_period
-		//	  start = 0 += intra_period
-		//	  end = start + intra_period-1
-		// 	  other encoding parameters
-		//    push job into job_queue
-		// start multi-threading!
-		//    throw encoding function and 
+		thread_pool_start(pool, opt->nthreads, frames, opt);
 		thread_pool_end(pool);
 	}
 

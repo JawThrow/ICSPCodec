@@ -1,8 +1,19 @@
 #ifndef ICSP_THREAD
 #define ICSP_THREAD
+#include <ICSP_Codec_Encoder.h>
 #include <pthread.h>
 #include <queue>
 using namespace std;
+
+typedef struct 
+{
+	FrameData* pFrames;
+	int nFrames;
+	int start_frame_num;
+	int end_frame_num;
+	int QP_DC;
+	int QP_AC;
+}encoding_jobs_t;
 
 typedef struct 
 {
@@ -21,15 +32,6 @@ typedef struct
 
 void thread_pool_init(thread_pool_t* pool, int nthreads);
 void thread_pool_end(thread_pool_t* pool);
-
-typedef struct 
-{
-	FrameData* pFrames;
-	int nFrames;
-	int start_frame_num;
-	int end_frame_num;
-	int QP_DC;
-	int QP_AC;
-}encoding_jobs_t;
+void thread_pool_start(thread_pool_t* pool, int nthreads, FrameData* frames, cmd_options_t* opt);
 
 #endif
