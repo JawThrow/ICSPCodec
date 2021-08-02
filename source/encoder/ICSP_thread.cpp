@@ -57,6 +57,8 @@ void thread_pool_start(thread_pool_t* pool, int nthreads, FrameData* frames, cmd
         job.QP_AC = QP_AC;
         job.pFrames = frames;
         pool->job_queue.push(job);
+        // - job should be functions
+        // - pthread cond can be applied this multi thread model!
     }
 
     // create pthread
