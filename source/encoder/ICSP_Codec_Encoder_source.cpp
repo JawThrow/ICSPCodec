@@ -173,9 +173,12 @@ void* encoding_thread(void* arg)
 
 	intraPrediction(pFrames[intra_frame_num], QP_DC, QP_AC);
 
+	print_frame_end_message(intra_frame_num, I_FRAME);
+
 	for(int inter_frame_num = intra_frame_num + 1; inter_frame_num < end_frame_num; inter_frame_num++)
 	{
 		interPrediction(pFrames[inter_frame_num], pFrames[inter_frame_num-1], QP_DC, QP_AC);
+		print_frame_end_message(inter_frame_num, P_FRAME);
 	}
 }
 
