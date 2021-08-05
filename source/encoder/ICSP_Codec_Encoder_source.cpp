@@ -57,6 +57,7 @@ void print_help_message()
 	printf("--qpdc : QP of DC (16, 8, or 1)\n");
 	printf("--qpac : QP of AC (16, 8, or 1)\n");
 	printf("--intraPeriod: period of intra frame(0: All intra)\n");
+	printf("--EnMultiThread: enable multi threading mode, also the number of thread(0~4, 0 is disable)\n");
 }
 void print_error_message(int err_type, char* func_name)
 {
@@ -84,6 +85,7 @@ static void init_cmd_options(cmd_options_t* cmd)
 	cmd->QP_DC = 0;
 	cmd->QP_AC = 0;
 	cmd->intra_period = 0;
+	cmd->multi_thread_mode = 0;
 }
 
 // parse command and extract cfg options
@@ -113,6 +115,10 @@ static int parsing_command(int argc, char *argv[], cmd_options_t *cmd)
 				else if (strcmp(long_name, "intraPeriod") == 0)
 				{
 					cmd->intra_period = atoi(argv[i+1]);
+				}
+				else if (strcmp(long_name, "EnMultiThread") == 0)
+				{
+					cmd->multi_thread_mode = atoi(argv[i+1]);
 				}
 				else if (strcmp(long_name, "help") == 0)
 				{
@@ -168,18 +174,18 @@ void set_command_options(int argc, char *argv[], cmd_options_t *cmd)
 
 /* multi threading functions */
 void* encoding_thread(void* arg)
-{
-	
+{	
+	// intraPrediction(pFrames[intra_frame_num], QP_DC, QP_AC);
 
-	intraPrediction(pFrames[intra_frame_num], QP_DC, QP_AC);
+	// print_frame_end_message(intra_frame_num, I_FRAME);
 
-	print_frame_end_message(intra_frame_num, I_FRAME);
+	// for(int inter_frame_num = intra_frame_num + 1; inter_frame_num < end_frame_num; inter_frame_num++)
+	// {
+	// 	interPrediction(pFrames[inter_frame_num], pFrames[inter_frame_num-1], QP_DC, QP_AC);
+	// 	print_frame_end_message(inter_frame_num, P_FRAME);
+	// }
 
-	for(int inter_frame_num = intra_frame_num + 1; inter_frame_num < end_frame_num; inter_frame_num++)
-	{
-		interPrediction(pFrames[inter_frame_num], pFrames[inter_frame_num-1], QP_DC, QP_AC);
-		print_frame_end_message(inter_frame_num, P_FRAME);
-	}
+	return NULL;
 }
 
 

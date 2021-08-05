@@ -1,8 +1,9 @@
 #ifndef ICSP_THREAD
 #define ICSP_THREAD
-#include <ICSP_Codec_Encoder.h>
 #include <pthread.h>
+#include <unistd.h>
 #include <queue>
+#include "ICSP_Codec_Encoder.h"
 using namespace std;
 
 typedef struct 

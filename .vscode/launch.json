@@ -19,7 +19,9 @@
                 "--qpac",
                 "16",
                 "--intraPeriod",
-                "0"
+                "5",
+                "--EnMultiThread",
+                "2"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
