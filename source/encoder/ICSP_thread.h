@@ -29,6 +29,7 @@ typedef struct
     thread_t* thread_list;
     int nthreads;
 	queue<encoding_jobs_t> job_queue;
+	pthread_mutex_t pool_mutex;	
 }thread_pool_t;
 
 void thread_pool_init(thread_pool_t* pool, int nthreads);

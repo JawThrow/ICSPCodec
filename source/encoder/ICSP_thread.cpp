@@ -1,36 +1,32 @@
 #include "ICSP_thread.h"
 #include "ICSP_Codec_Encoder.h"
 #include <stdlib.h>
+using namespace std;
 
 void thread_pool_init(thread_pool_t* pool, int nthreads)
 {
-    pool = (thread_pool_t*) malloc(sizeof(thread_pool_t));
-
-    if(pool == NULL)
-    {
-        print_error_message(FAIL_MEM_ALLOC, "thread_pool_init");
-    }
-
     pool->nthreads = nthreads;
     pool->thread_list = (thread_t*)malloc(sizeof(thread_t)*nthreads);
-
     if(pool->thread_list == NULL)
     {
         print_error_message(FAIL_MEM_ALLOC, "thread_pool_init");
-    }    
+    }
+    pthread_mutex_init(&pool->pool_mutex, NULL);    
 }
 
 void thread_pool_end(thread_pool_t* pool)
 {
-    if(pool != NULL)
+    
+    for(int i=0; i<pool->nthreads; i++)
     {
-        if(pool->thread_list != NULL)
-        {
-            for(int i=0; i<pool->nthreads; i++)
-                free(&pool->thread_list[i]);
-        }
-        free(pool);
-    }    
+        pthread_join(pool->thread_list[i].pid, NULL);
+    }
+
+    if(pool->thread_list != NULL)
+    {
+        for(int i=0; i<pool->nthreads; i++)
+            free(&pool->thread_list[i]);
+    }
 }
 
 // @ thread_pool_start();
@@ -49,6 +45,7 @@ void thread_pool_start(thread_pool_t* pool, int nthreads, FrameData* frames, cmd
     int total_jobs = opt->total_frames / intra_period;
     int QP_DC = opt->QP_DC;
     int QP_AC = opt->QP_AC;
+    
     for(int njobs=0; njobs<total_jobs; njobs++)
     {
         encoding_jobs_t job;
@@ -65,8 +62,8 @@ void thread_pool_start(thread_pool_t* pool, int nthreads, FrameData* frames, cmd
     }
 
     // create pthread
-    // for(int i=0; i<nthreads; i++)
-    // {
-    //     pthread_create(&pool->thread_list[i].pid, NULL, encoding_thread, )
-    // }
+    for(int i=0; i<nthreads; i++)
+    {
+        pthread_create(&pool->thread_list[i].pid, NULL, encoding_thread, (void*)pool);
+    }
 }

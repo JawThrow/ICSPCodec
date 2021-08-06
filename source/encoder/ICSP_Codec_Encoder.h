@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ICSP_CODEC_ENCODER
+#define ICSP_CODEC_ENCODER
 
 #include <iostream>
 #include <iomanip>
@@ -312,3 +313,5 @@ unsigned char* DCentropy(int DCval, int& nbits);
 int ACentropy(int* reordblck, unsigned char *ACentropyResult);
 unsigned char* ACentropy(int* reordblck, int& nbits);
 unsigned char* MVentropy(MotionVector mv, int& nbitsx, int& nbitsy);
+
+#endif //ICSP_CODEC_ENCODER

@@ -1,4 +1,6 @@
 #include "ICSP_Codec_Encoder.h"
+#include "ICSP_thread.h"
+#include <pthread.h>
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b))
@@ -119,6 +121,7 @@ static int parsing_command(int argc, char *argv[], cmd_options_t *cmd)
 				else if (strcmp(long_name, "EnMultiThread") == 0)
 				{
 					cmd->multi_thread_mode = atoi(argv[i+1]);
+					cmd->nthreads = cmd->multi_thread_mode;
 				}
 				else if (strcmp(long_name, "help") == 0)
 				{
@@ -174,17 +177,30 @@ void set_command_options(int argc, char *argv[], cmd_options_t *cmd)
 
 /* multi threading functions */
 void* encoding_thread(void* arg)
-{	
-	// intraPrediction(pFrames[intra_frame_num], QP_DC, QP_AC);
+{
+	thread_pool_t* pool = (thread_pool_t*)arg;
+	queue<encoding_jobs_t> &Q = pool->job_queue;
 
-	// print_frame_end_message(intra_frame_num, I_FRAME);
+	while(!Q.empty())
+	{		
+		pthread_mutex_lock(&pool->pool_mutex);
+		encoding_jobs_t job = Q.front(); Q.pop();
+		int intra_frame_num = job.start_frame_num;
+		int end_frame_num = job.end_frame_num;
+		int QP_DC = job.QP_DC;
+		int QP_AC = job.QP_AC;		
+		FrameData *pFrames = job.pFrames;
+		pthread_mutex_unlock(&pool->pool_mutex);
 
-	// for(int inter_frame_num = intra_frame_num + 1; inter_frame_num < end_frame_num; inter_frame_num++)
-	// {
-	// 	interPrediction(pFrames[inter_frame_num], pFrames[inter_frame_num-1], QP_DC, QP_AC);
-	// 	print_frame_end_message(inter_frame_num, P_FRAME);
-	// }
+		intraPrediction(pFrames[intra_frame_num], QP_DC, QP_AC);
+		print_frame_end_message(intra_frame_num, I_FRAME);
 
+		for(int inter_frame_num = intra_frame_num + 1; inter_frame_num < end_frame_num; inter_frame_num++)
+		{
+			interPrediction(pFrames[inter_frame_num], pFrames[inter_frame_num-1], QP_DC, QP_AC);
+			print_frame_end_message(inter_frame_num, P_FRAME);
+		}
+	}
 	return NULL;
 }
 

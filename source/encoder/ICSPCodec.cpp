@@ -64,10 +64,10 @@ void IcspCodec::encoding(cmd_options_t* opt)
 	}
 	else // multi-thread mode
 	{		
-		thread_pool_t* pool;
-		thread_pool_init(pool, opt->nthreads);
-		thread_pool_start(pool, opt->nthreads, frames, opt);
-		thread_pool_end(pool);
+		thread_pool_t pool;
+		thread_pool_init(&pool, opt->nthreads);
+		thread_pool_start(&pool, opt->nthreads, frames, opt);
+		thread_pool_end(&pool);
 	}
 
 	
