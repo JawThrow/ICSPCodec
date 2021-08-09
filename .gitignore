@@ -3,6 +3,11 @@ build/Debug/cmake_install.cmake
 build/Debug/CMakeFiles/
 build/Debug/Makefile
 build/Debug/ICSPCodec
+build/Release/CMakeCache.txt
+build/Release/cmake_install.cmake
+build/Release/CMakeFiles/
+build/Release/Makefile
+build/Release/ICSPCodec
 *.yuv
 data/*.bin
 .vscode/settings.json
