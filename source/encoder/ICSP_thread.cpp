@@ -11,6 +11,12 @@ void thread_pool_init(thread_pool_t* pool, int nthreads)
     {
         print_error_message(FAIL_MEM_ALLOC, "thread_pool_init");
     }
+
+    for(int i=0; i<nthreads; i++)
+    {
+        pool->thread_list[i].thread_idx = i;
+    }
+
     pthread_mutex_init(&pool->pool_mutex, NULL);    
 }
 
@@ -24,8 +30,7 @@ void thread_pool_end(thread_pool_t* pool)
 
     if(pool->thread_list != NULL)
     {
-        for(int i=0; i<pool->nthreads; i++)
-            free(&pool->thread_list[i]);
+        free(pool->thread_list);
     }
 }
 
