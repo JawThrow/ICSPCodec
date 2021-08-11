@@ -27,14 +27,14 @@ SET ( SRC_FILES
 INCLUDE_DIRECTORIES ( )
  
 # 공통 컴파일 옵션, 링크 옵션
-ADD_COMPILE_OPTIONS ( -g -Wall )
-SET ( CMAKE_EXE_LINKER_FLAGS "-static -Wl,--gc-sections" )
+ADD_COMPILE_OPTIONS ( -g -Wall)
+SET ( CMAKE_EXE_LINKER_FLAGS "-static -Wl,--gc-sections -pthread" )
  
 # 공통 링크 라이브러리 디렉토리 (-L)
 LINK_DIRECTORIES ( /usr/lib )
  
 # "Debug" 형상 한정 컴파일 옵션, 링크 옵션
-SET ( CMAKE_C_FLAGS_DEBUG "-DDEBUG -DC_FLAGS -Wall -pthread" )
+SET ( CMAKE_C_FLAGS_DEBUG "-DDEBUG -DC_FLAGS -Wall" )
 SET ( CMAKE_EXE_LINKER_FLAGS_DEBUG "-DDEBUG -DLINKER_FLAGS" )
  
 # "Release" 형상 한정 컴파일 옵션, 링크 옵션
