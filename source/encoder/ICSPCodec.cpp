@@ -69,9 +69,6 @@ void IcspCodec::encoding(cmd_options_t* opt)
 		thread_pool_start(&pool, opt->nthreads, frames, opt);
 		thread_pool_end(&pool);
 	}
-
-	
-	
 }
 
 IcspCodec::~IcspCodec()
