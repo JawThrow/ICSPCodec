@@ -175,7 +175,15 @@ void set_command_options(int argc, char *argv[], cmd_options_t *cmd)
 	}
 }
 
-/* multi threading functions */
+// multi thread functions
+void multi_thread_encoding(cmd_options_t* opt, FrameData* frames)
+{
+	thread_pool_t pool;
+	thread_pool_init(&pool, opt->nthreads);
+	thread_pool_start(&pool, opt->nthreads, frames, opt);
+	thread_pool_end(&pool);;
+}
+
 void* encoding_thread(void* arg)
 {
 	thread_pool_t* pool = (thread_pool_t*)arg;
@@ -204,7 +212,36 @@ void* encoding_thread(void* arg)
 	return NULL;
 }
 
-
+// single thread function
+void single_thread_encoding(FrameData* frames, YCbCr_t* YCbCr, int intra_period, int QstepDC, int QstepAC)
+{
+	if( intra_period==ALL_INTRA )
+	{
+		allintraPrediction(frames, YCbCr->nframe, QstepDC, QstepAC);
+		makebitstream(frames, YCbCr->nframe, YCbCr->height, YCbCr->width, QstepDC, QstepAC, intra_period, INTRA);
+		checkResultFrames(frames, YCbCr->width, YCbCr->height, YCbCr->nframe, INTRA, SAVE_YUV);
+	}
+	else
+	{
+		for(int n=0; n<YCbCr->nframe; n++)
+		{
+			int frame_type = 0;			
+			if(n%intra_period==0)
+			{
+				frame_type = I_FRAME;
+				intraPrediction(frames[n], QstepDC, QstepAC);				
+			}
+			else
+			{
+				frame_type = P_FRAME;
+				interPrediction(frames[n], frames[n-1], QstepDC, QstepAC);
+			}
+			print_frame_end_message(n, frame_type);
+		}		
+		makebitstream(frames, YCbCr->nframe, YCbCr->height, YCbCr->width, QstepDC, QstepAC, intra_period, INTER);
+		checkResultFrames(frames, YCbCr->width, YCbCr->height,YCbCr->nframe, INTER, SAVE_YUV);
+	}
+}
 /* initiation function*/
 int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe,  const int width, const int height)
 {

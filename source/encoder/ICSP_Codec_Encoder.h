@@ -233,8 +233,12 @@ void print_frame_end_message(int curr_frame_num, int frame_type);
 void print_error_message(int err_type, char* func_name);
 void print_help_message();
 
-/* multi-thread functions */
+// multi-thread functions
+void multi_thread_encoding(cmd_options_t* opt, FrameData* frames);
 void *encoding_thread(void* arg);
+
+// single-thread functions
+void single_thread_encoding(FrameData* frames, YCbCr_t* YCbCr, int intra_period, int QstepDC, int QstepAC);
 
 /* initiation function */
 int YCbCrLoad(IcspCodec &icC, char* fname, const int nframe, const int width, const int height);

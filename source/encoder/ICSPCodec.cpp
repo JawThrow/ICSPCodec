@@ -30,44 +30,15 @@ void IcspCodec::init(int nframe, char* imageFname, int width, int height, int Qs
 }
 	
 void IcspCodec::encoding(cmd_options_t* opt)
-{
-	
-	if(!opt->multi_thread_mode) // single-thread mode
-	{
-		int intraPeriod = opt->intra_period;
-		if( intraPeriod==ALL_INTRA )
-		{
-			allintraPrediction(frames, YCbCr.nframe, QstepDC, QstepAC);
-			makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTRA);
-			checkResultFrames(frames, YCbCr.width, YCbCr.height, YCbCr.nframe, INTRA, SAVE_YUV);
-		}
-		else
-		{
-			for(int n=0; n<YCbCr.nframe; n++)
-			{
-				int frame_type = 0;			
-				if(n%intraPeriod==0)
-				{
-					frame_type = I_FRAME;
-					intraPrediction(frames[n], QstepDC, QstepAC);				
-				}
-				else
-				{
-					frame_type = P_FRAME;
-					interPrediction(frames[n], frames[n-1], QstepDC, QstepAC);
-				}
-				print_frame_end_message(n, frame_type);
-			}		
-			makebitstream(frames, YCbCr.nframe, YCbCr.height, YCbCr.width, QstepDC, QstepAC, intraPeriod, INTER);
-			checkResultFrames(frames, YCbCr.width, YCbCr.height,YCbCr.nframe, INTER, SAVE_YUV);
-		}
+{	
+	if(opt->multi_thread_mode) // multi-thread mode
+	{	
+		multi_thread_encoding(opt, frames);			
+		
 	}
-	else // multi-thread mode
-	{		
-		thread_pool_t pool;
-		thread_pool_init(&pool, opt->nthreads);
-		thread_pool_start(&pool, opt->nthreads, frames, opt);
-		thread_pool_end(&pool);
+	else // single-thread mode
+	{
+		single_thread_encoding(frames, &YCbCr, opt->intra_period, QstepDC, QstepAC);
 	}
 }
 
