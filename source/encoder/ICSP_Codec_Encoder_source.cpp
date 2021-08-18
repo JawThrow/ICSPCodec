@@ -175,7 +175,7 @@ void set_command_options(int argc, char *argv[], cmd_options_t *cmd)
 	}
 }
 
-// multi thread functions
+// multi-thread functions
 void multi_thread_encoding(cmd_options_t* opt, FrameData* frames)
 {
 	thread_pool_t pool;
@@ -183,7 +183,6 @@ void multi_thread_encoding(cmd_options_t* opt, FrameData* frames)
 	thread_pool_start(&pool, opt->nthreads, frames, opt);
 	thread_pool_end(&pool);;
 }
-
 void* encoding_thread(void* arg)
 {
 	thread_pool_t* pool = (thread_pool_t*)arg;
@@ -203,16 +202,18 @@ void* encoding_thread(void* arg)
 		intraPrediction(pFrames[intra_frame_num], QP_DC, QP_AC);
 		print_frame_end_message(intra_frame_num, I_FRAME);
 
-		for(int inter_frame_num = intra_frame_num + 1; inter_frame_num < end_frame_num; inter_frame_num++)
+		for(int inter_frame_num = intra_frame_num + 1; inter_frame_num <= end_frame_num; inter_frame_num++)
 		{
 			interPrediction(pFrames[inter_frame_num], pFrames[inter_frame_num-1], QP_DC, QP_AC);
 			print_frame_end_message(inter_frame_num, P_FRAME);
 		}
-	}
+	}	
+
 	return NULL;
 }
 
-// single thread function
+
+// single-thread function
 void single_thread_encoding(FrameData* frames, YCbCr_t* YCbCr, int intra_period, int QstepDC, int QstepAC)
 {
 	if( intra_period==ALL_INTRA )
@@ -2316,6 +2317,11 @@ void interYReconstruct(FrameData& cntFrm, FrameData& prevFrm)
 
 	unsigned char* Ychannel = (unsigned char*)calloc(width*height, sizeof(unsigned char));
 	cntFrm.reconstructedY  = (unsigned char*) malloc(sizeof(unsigned char)*width*height);
+
+	if (cntFrm.reconstructedY == NULL)
+	{
+		print_error_message(FAIL_MEM_ALLOC, "interYReconstruct");
+	}
 
 	int refx=0, refy=0, cntx=0, cnty=0;
 	int cntindex=0, refindex=0;
@@ -4883,8 +4889,7 @@ void makebitstream(FrameData* frames, int nframes, int height, int width, int Qs
 			else
 			{
 				interBody(frames[n], tempFrame, cntbits);
-				//cout << "inter frame bits: " << cntbits << endl;
-				
+				//cout << "inter frame bits: " << cntbits << endl;				
 			}
 		}
 		fwrite(tempFrame, (cntbits/8)+1, 1, fp);
@@ -6429,7 +6434,6 @@ void checkResultRestructedFrames(FrameData* frm, int width, int height, int nfra
 		return;
 	}
 
-
 	int totalblck = frm->nblocks16;
 	int nblck8 = frm->nblocks8;
 	int splitWidth = frm->splitWidth;
@@ -6439,10 +6443,8 @@ void checkResultRestructedFrames(FrameData* frm, int width, int height, int nfra
 
 	unsigned char* img = (unsigned char*) calloc(width * height, sizeof(unsigned char));
 
-
 	free(img);
 	fclose(output_fp);
-
 }
 void checkRestructed(FrameData* frms, int nframes, int width, int height, int predtype, int chtype) // type: 1 -> Y, 3 -> YCbCr
 {
