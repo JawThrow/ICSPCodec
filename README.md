@@ -21,7 +21,6 @@ The characteristics of the ICSP codec are as follows.
 > make
 </code>
 </pre>
-Release is not available yet.
 # ICSP Codec Encoding Process
 ![Encoding Proces](https://user-images.githubusercontent.com/36951642/57179748-f59a9880-6ebb-11e9-9c6d-5857f45d5545.PNG)
 
