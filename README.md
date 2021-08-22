@@ -11,7 +11,7 @@ The characteristics of the ICSP codec are as follows.
 - Entropy Coding
 - Only Supporting YUV420
 - Only Supporting CIF(352x288)
-- multi-threading
+- multi-thread encoding
 
 # Build
 <pre>
