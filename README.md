@@ -108,7 +108,7 @@ I will describe detail comparison result in following chapter.
 ![image](https://user-images.githubusercontent.com/36951642/67497244-ab4ee300-f6b8-11e9-8687-01cb371a0d10.png)
 
 ### Multi-thread Mode
-<img width="881" alt="image" src="https://user-images.githubusercontent.com/36951642/130342830-b2b96f5c-8fee-4eea-b420-e5bba781f3d9.png">
+<img width="881" alt="image" src="https://user-images.githubusercontent.com/36951642/130348438-3f1ba364-c6a2-43a2-970f-4f2c54b014df.png">
 
 
 ### Computational Complexity Comparison 
