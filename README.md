@@ -13,14 +13,29 @@ The characteristics of the ICSP codec are as follows.
 - Only Supporting CIF(352x288)
 - multi-thread encoding
 
-# Build
+# Build and execute
 <pre>
 <code>
 > cd build/Debug(or Release)
 > ./build.sh
 > make
+> ./ICSPCodec [option] [values]
 </code>
 </pre>
+
+# Encoding options  
+- -i : input yuv sequence
+- -w : width
+- -h : height
+- -n : the number of frames(default is 1)
+- -q : QP of DC and AC (16, 8, or 1)
+- -h : help message
+- --help : help message
+- --qpdc : QP of DC (16, 8, or 1)
+- --qpac : QP of AC (16, 8, or 1)
+- --intraPeriod: period of intra frame(0: All intra)
+- --EnMultiThread: enable multi threading mode, also the number of thread(0~4, 0 is disable)
+
 # ICSP Codec Encoding Process
 ![Encoding Proces](https://user-images.githubusercontent.com/36951642/57179748-f59a9880-6ebb-11e9-9c6d-5857f45d5545.PNG)
 
