@@ -123,13 +123,13 @@ I will describe detail comparison result in following chapter.
 ![image](https://user-images.githubusercontent.com/36951642/67497244-ab4ee300-f6b8-11e9-8687-01cb371a0d10.png)
 
 ### Multi-thread Mode
-ICSP Codec only support opened gop structure.
+ICSP Codec only support opened gop structure. 
 <img width="881" alt="image" src="https://user-images.githubusercontent.com/36951642/130348438-3f1ba364-c6a2-43a2-970f-4f2c54b014df.png">
 
 
 ### Computational Complexity Comparison 
 #### All Intra Prediction Mode
-| Sequences | Scalar Encoding Time(Sec) | Vector Encoding Time(sec)| Encoding Time Reduction Rate(%)|
+| Sequences | Scalar Encoding Time(Sec) | AVX Encoding Time(sec)| Encoding Time Reduction Rate(%)|
 |---|:---:|:---:|:---:|
 |akiyo|13.65|12.12|89%|
 |children|16.9|12.91|76%|
@@ -147,7 +147,7 @@ ICSP Codec only support opened gop structure.
 
 
 #### Inter/Intra Hybrid Prediction(intra period : 10)
-| Sequences | Scalar Encoding Time(Sec) | Vector Encoding Time(sec)| Encoding Time Reduction Rate(%)|
+| Sequences | Encoding Time(Sec) | AVX Encoding Time(sec)| Encoding Time Reduction Rate(%)|
 |---|:---:|:---:|:---:|
 |akiyo|30.52|13.71|45%|
 |children|25.9|11.27|44%|
