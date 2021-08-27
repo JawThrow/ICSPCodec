@@ -146,6 +146,8 @@ However, This conversion significantly shortened the computational complexity in
 
 Fig. 12 simple example for vectorization structure (using AVX)
 
+Currently, Vectorization Mode is temporarily not supported. I will be working on improvements for stability and scalability. If you want to see the previous source, please refer to the 53deac7 previous commit.
+
 ### Multi-thread Mode
 ICSP Codec only support opened gop structure. A encoding thread Each gop sturcture
 <img width="881" alt="image" src="https://user-images.githubusercontent.com/36951642/130348438-3f1ba364-c6a2-43a2-970f-4f2c54b014df.png">
