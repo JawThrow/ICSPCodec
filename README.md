@@ -151,6 +151,7 @@ Currently, Vectorization Mode is temporarily not supported. I will be working on
 ### Multi-thread Mode
 ICSP Codec only support closed gop structure(P frame can only reference previous frame that is belong to same gop). 
 YUV sequence is divided into gop units. Gop becomes a job and is stored in the queue, and the encoding thread takes each job out of the queue and proceeds with encoding.
+
 <img width="881" alt="image" src="https://user-images.githubusercontent.com/36951642/130348438-3f1ba364-c6a2-43a2-970f-4f2c54b014df.png">
 
 Fig. 13 multi-thread structure of ICSP codec
